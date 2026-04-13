@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Fresh session on pika-lts-env (env_014sNRKczin3E3RJzUJGUABY). long-to-short-video scripts installed via init_script (base64-embedded, 7 files: long_to_short.py + downloader.py + transcriber.py + video_processor.py + clip_selector.py + uploader.py + utils.py). Agent pika-lts (agent_011CZvNuRgTCRuUoTtYy59hv) with nova3-common skill. T1→T2→T3→T4 ran sequentially using nohup+poll pattern (required — fresh runs take ~220-273s, over the 295s bash timeout). T4 poll crashed once at 219.95s ('tool execution interrupted by crash') — agent retried and found done file; T4_ms correctly measured from nohup launch time. T4 requested 5 clips; LLM returned 4 (207s source not enough for 5 distinct segments). AV1 hw decode unavailable — H264 mmco warnings in stderr; face timeline ~22s (not 60s). Session: sesn_011CZvNv4LbAYjNgcsX4PfJE.",
+    "test_input": {
+      "name": "matt-cutts-30days",
+      "description": "Matt Cutts — Try Something New for 30 Days (TED Talk, 3m27s)",
+      "resolution": "720p",
+      "duration_s": 207,
+      "codec": "H264",
+      "size_kb": 8192,
+      "url": "https://www.youtube.com/watch?v=UNP03fDSj1U"
+    }
+  },
+
+  "task": {
+    "name": "long-to-short-video",
+    "version": "1.0.5",
+    "purpose": "Download YouTube video, select best clips via LLM, reframe 9:16, burn captions, upload to CDN",
+    "expected_output": "3-5 short MP4 clips (9:16) with virality scores and CDN URLs"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "long-to-short-video scripts installed via pika-lts-env init_script (base64-embedded at container creation time). nova3-common (skill_01WVFxRuNsjXYwW9Tz7Q2Nks) mounted at /workspace/skills/nova3-common. pip deps: requests, opencv-python-headless, yt-dlp. apt: ffmpeg. Whisper transcription routes via Pika proxy (whisper-1 API call) — no local whisper install."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No pre-download. S1 stage downloads the video internally as part of each fresh run (via Apify dc_solutions~youtube-downloader-pro proxy)."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 729.2,
+      "steps": [
+        {
+          "name": "t1_fresh_3clips_tiktok",
+          "duration_s": 231.584,
+          "notes": "script_ms=231584. s1_apify_s=37 (dc_solutions~youtube-downloader-pro, run KSE1tm01XAHTvPIFI, SUCCEEDED at 37s). s1_download_s=0 (instant presigned URL, 8MB). s1_face_s=~22 (104 samples, 8 no-face intervals detected). s2_whisper_s=12 (482 words). s3_llm_s=11 (3 clips selected, scores 8.7/7.9/6.8). s4s5s6s7_per_clip_s=~50 (3 clips × ~50s avg = ~150s). clips=3. CDN: a89917de.../clip_01 (vir=8.7, 59.18s), 43123cab.../clip_02 (vir=7.9, 43.62s), e441b1aa.../clip_03 (vir=6.8, 50.0s)."
+        },
+        {
+          "name": "t2_cache_hit",
+          "duration_s": 7.795,
+          "notes": "script_ms=7795. cache_status=hit. S1 video cache hit (8MB already downloaded). S1 face timeline loaded from cache (104 samples). S2 transcript loaded from cache (482 words). S3 clips loaded from cache (LLM skipped). S4-S7 all loaded from checkpoint — identical CDN URLs returned. 29× speedup vs T1 (7.8s vs 231.6s)."
+        },
+        {
+          "name": "t3_fresh_3clips_hormozi",
+          "duration_s": 217.072,
+          "notes": "script_ms=217072. s1_apify_s=37 (run erJFYSIbSgpgvEEWx, SUCCEEDED at 37s). s1_download_s=0 (8MB instant). s1_face_s=~22. s2_whisper_s=12 (482 words). s3_llm_s=9 (3 clips selected, scores 8.7/7.2/5.0). s4s5s6s7_per_clip_s=~46 (3 clips × ~46s = ~138s). clips=3. hormozi bold caption style. CDN: d6a2fff4.../clip_01, 89255365.../clip_02, 2eb102a2.../clip_03."
+        },
+        {
+          "name": "t4_fresh_5clips_tiktok",
+          "duration_s": 272.710,
+          "notes": "script_ms=272710. s1_apify_s=53 (run WJX8r2xhfxQhPptLz, server 500 → retry, SUCCEEDED at 53s). s1_download_s=0. s1_face_s=~22. s2_whisper_s=9 (483 words). s3_llm_s=14 (requested 5 clips; LLM returned 4, scores 9.1/8.2/5.0/5.0 — 207s video insufficient for 5 distinct segments). s4s5s6s7_per_clip_s=~44 (4 clips × ~44s = ~174s). clips=4. CDN: 027b3942.../clip_01, 54744f13.../clip_02, 1372c100.../clip_03, d70f9c6f.../clip_04. NOTE: T4 poll bash call crashed at ~220s (tool execution interrupted) — agent retried poll and found done file; T4_ms accurately measured from nohup launch timestamp stored in /tmp/t4_start_ns.txt."
+        }
+      ],
+      "llm_overhead_s": 122.6,
+      "total_s": 824.3,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "All 4 runs sequential (T1→T2→T3→T4). Each fresh run used nohup+background+poll (required: T1=231.6s, T3=217.1s, T4=272.7s all exceed 295s bash timeout limit). Sequential sum of script times = 729.2s. tool_calls_s (sum of all bash call durations incl. setup/polling/parse) = 701.7s. T2 poll was direct bash (7.8s well under timeout). T4 nohup launch used /tmp/t4_start_ns.txt for accurate timing past poll crash."
+    },
+    "delivery": {
+      "upload_s": null,
+      "output_size_kb": null,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/a89917de-9ff6-4709-b70c-06da56b1c2.../clip_01_final.mp4",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload is S7 inside the skill script (not a separate phase). T1+T2+T3+T4 produced 10 unique clip CDN URLs total (T2 reuses T1's 3 CDN URLs). output_url = T1 clip 1 CDN URL (partial, trimmed by bash output buffer)."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 101,
+    "output_tokens": 7354,
+    "cache_read_tokens": 197508,
+    "cache_write_tokens": 20265,
+    "total_tokens": 225228
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.2459
+  },
+
+  "totals": {
+    "tool_calls_s": 701.7,
+    "llm_overhead_s": 122.6,
+    "wall_total_s": 824.3,
+    "llm_pct": 14.9,
+    "skill_pct": 85.1
+  }
+}

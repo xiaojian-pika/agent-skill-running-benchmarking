@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "pikabot",
+    "notes": "v1.0.6 installed from CMS via direct API. rootPrefix='video-translation/' \u2014 flattened correctly. Spanish translation, no lip sync. Single pass: Whisper\u2192translate\u2192clone\u2192TTS\u2192replace. Voice cloned and deleted (GE6zLXa94V2gOOyfmQkM). TTS generated 674.7KB audio.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli D'Amelio daily vlog, TikTok-style vertical short-form video",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "1.0.6",
+    "purpose": "Translate 67.8s English vlog video to Spanish, no lip sync. Tests full pipeline: transcribe\u2192translate\u2192voice clone\u2192TTS\u2192replace audio.",
+    "expected_output": "MP4 with Spanish TTS audio track replacing original English; same video, dubbed audio"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6 (anthropic/claude-sonnet-4-6)",
+    "system_prompt_tokens": 45097
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.156,
+      "skill_install_s": 0.129,
+      "subagent_start_s": 17.424,
+      "llm_overhead_s": 24.33,
+      "total_s": 42.04,
+      "tokens": {
+        "input_tokens": 5,
+        "output_tokens": 1100
+      },
+      "notes": "CMS fetch 156ms. Zip 50KB downloaded in 122ms, extracted in 7ms. rootPrefix='video-translation/' flattened correctly. v1.0.6: 1090 lines. Subagent boot 17.4s."
+    },
+    "asset_acquisition": {
+      "download_s": 0.258,
+      "llm_overhead_s": 5.21,
+      "total_s": 5.47,
+      "tokens": {
+        "input_tokens": 2,
+        "output_tokens": 200
+      },
+      "notes": "S3 ~18.8 MB/s, 4.79MB in 258ms."
+    },
+    "execution": {
+      "probe_s": 0.079,
+      "skill_run_s": 35.377,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 1.0,
+          "notes": "ffmpeg audio extraction. Log: 0.0s\u21921.0s"
+        },
+        {
+          "name": "transcribe_waterfall",
+          "duration_s": 3.0,
+          "notes": "Whisper API hit first, succeeded. 676 chars transcribed. Log: 1.0s\u21924.0s"
+        },
+        {
+          "name": "translate_gpt4o",
+          "duration_s": 2.0,
+          "notes": "GPT-4o translation to Spanish. 715 chars output. Log: 4.0s\u21926.0s"
+        },
+        {
+          "name": "voice_clone_elevenlabs",
+          "duration_s": 1.9,
+          "notes": "ElevenLabs voice clone from source audio. Voice ID: GE6zLXa94V2gOOyfmQkM. Single-speaker model. Log: 6.0s\u21927.9s"
+        },
+        {
+          "name": "tts_eleven_v3",
+          "duration_s": 24.9,
+          "notes": "ElevenLabs TTS (eleven_v3) Spanish generation. Output 674.7KB. Log: 7.9s\u219232.8s. TTS is the dominant bottleneck at 70% of script time."
+        },
+        {
+          "name": "replace_audio_ffmpeg",
+          "duration_s": 2.2,
+          "notes": "ffmpeg audio track replacement. Log: 32.8s\u219235.0s. Voice clone cleaned up after."
+        }
+      ],
+      "llm_overhead_s": 36.5,
+      "total_s": 71.95,
+      "tokens": {
+        "input_tokens": 5,
+        "output_tokens": 1400
+      },
+      "notes": "translate_video.py ran in 35.4s for 67.8s video = 0.52x realtime. TTS bottleneck: ~24.9s (70% of script time). Full pipeline completed without errors. Voice clone created and cleaned up in same run."
+    },
+    "delivery": {
+      "upload_s": 14.485,
+      "output_size_kb": 3328,
+      "output_url": "https://cdn.pika.art/v2/files/agent/fad44aeb-362b-4cf0-8d93-40ea1bbe7120/bench-vt-charli-es-nolipsync.mp4",
+      "llm_overhead_s": 8.69,
+      "total_s": 23.17,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 700
+      },
+      "notes": "Output 3328KB vs 4790KB input (0.69x \u2014 smaller because TTS audio is compressed differently). Upload ~236 KB/s (14.5s for 3.3MB)."
+    }
+  },
+  "tokens": {
+    "input_tokens": 15,
+    "output_tokens": 3414,
+    "cache_read_tokens": 1601901,
+    "cache_write_tokens": 255042,
+    "total_tokens": 1860372
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 1.488233,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75
+  },
+  "totals": {
+    "tool_calls_s": 67.91,
+    "llm_overhead_s": 86.9,
+    "wall_total_s": 154.8,
+    "llm_pct": 56.1,
+    "skill_pct": 43.9
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Fresh session on pika-sp-env (env_01X6A1Yp2uS7CknHMBGF8iiT). social-posting v1.0.7 installed via init_script (base64-embedded generate_caption.py + _retry.py). Agent pika-social-poster (agent_011CZvGxRhqM4ZgrXXkq6DcC) with nova3-common skill. T1+T2+T3+T4 dispatched simultaneously (14:50:48Z); container ran sequentially (T1=9.1s, T2=17.8s, T3=7.2s, T4=79.2s). T4 hit Anthropic read timeout (31.7s) on variations path → OpenAI fallback → single variation returned (expected 3). Session: sesn_011CZvH19AFxaV9wfs36K1ry.",
+    "test_input": {
+      "name": "pasta-tutorial-brief",
+      "description": "video tutorial: how to cook perfect pasta at home — tested 5 different techniques",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+
+  "task": {
+    "name": "social-posting",
+    "version": "1.0.7",
+    "purpose": "Generate platform-optimized captions + hashtags for a cooking tutorial video brief",
+    "expected_output": "JSON with caption, hashtags, full_post per test case; T4 expects 3 variations"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "social-posting v1.0.7 scripts installed via pika-sp-env init_script (base64-encoded inline, no Pika hub download needed). init_script runs at container startup before session begins. nova3-common (skill_01WVFxRuNsjXYwW9Tz7Q2Nks) mounted at /workspace/skills/nova3-common."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No asset download — social-posting is pure LLM skill."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 113.219,
+      "steps": [
+        {
+          "name": "t1_x_casual",
+          "duration_s": 9.067,
+          "notes": "script_ms=9067. platform=x, tone=casual. llm_s=8.9 (anthropic). caption_len=216 hashtags=2 (#pasta, #cooking). Success. Preview: 'tested 5 pasta techniques so you don't have to. cold water start actually slaps...'"
+        },
+        {
+          "name": "t2_instagram_casual",
+          "duration_s": 17.755,
+          "notes": "script_ms=17755. platform=instagram, tone=casual. llm_s=17.6 (anthropic). caption_len=1005 hashtags_count=28. Full long-form micro-story caption. Success."
+        },
+        {
+          "name": "t3_tiktok_funny",
+          "duration_s": 7.156,
+          "notes": "script_ms=7156. platform=tiktok, tone=funny. llm_s=7.0 (anthropic). caption_len=86. Short punchy Gen-Z hook. Success. Preview: 'I tested 5 pasta techniques so you don't have to (your Italian grandma lied to you fr)'"
+        },
+        {
+          "name": "t4_instagram_variations3",
+          "duration_s": 79.241,
+          "notes": "script_ms=79241. platform=instagram, tone=casual, variations=3. llm_s=14.4 (openai fallback). variations_returned=1 (expected 3). ⚠️ Anthropic timed out after 31.7s on variations pass → OpenAI fallback → variations generation failed (timeout) → returned single result. Second Anthropic attempt for single variation also failed (2.5s, connection closed) → OpenAI fallback succeeded (14.4s). caption_len=778 hashtags_count=30."
+        }
+      ],
+      "llm_overhead_s": 31.871,
+      "total_s": 149.690,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T1+T2+T3+T4 bash calls dispatched simultaneously at 14:50:48Z; container ran sequentially (T1→T2→T3→T4). Parallel-adjusted tool_calls_s = 117.819s (14:50:48 → 14:52:46). llm_overhead_s = 149.690 - 117.819 = 31.871s (initial dispatch ~17s + final synthesis ~15s)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": null,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — social-posting outputs JSON to stdout only."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 4,
+    "output_tokens": 2446,
+    "cache_read_tokens": 10556,
+    "cache_write_tokens": 6014,
+    "total_tokens": 19020
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.0624
+  },
+
+  "totals": {
+    "tool_calls_s": 117.819,
+    "llm_overhead_s": 31.871,
+    "wall_total_s": 149.690,
+    "llm_pct": 21.3,
+    "skill_pct": 78.7
+  }
+}

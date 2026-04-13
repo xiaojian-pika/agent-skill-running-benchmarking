@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "mingzhi",
+    "notes": "Run2 re-run. Updated skill uses API transcription (Whisper → Deepgram → Gemini fallback). Caption completed in 15.0s. Warm container.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style short vlog, English speech, vertical format",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-captions",
+    "version": "latest (skill_01AtvS9A6TCwagESmQwXRLLC, v1775907222933701)",
+    "purpose": "Add TikTok-style captions to 67.8s English vlog video",
+    "expected_output": "Captioned mp4 with tiktok-style word highlights"
+  },
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null, "skill_install_s": null, "subagent_start_s": null,
+      "llm_overhead_s": null, "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Skills pre-loaded. No install time counted."
+    },
+    "asset_acquisition": {
+      "download_s": 2.8, "llm_overhead_s": null, "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Downloaded 4.7MB. Agent also read SKILL.md (20.8s, awk error)."
+    },
+    "execution": {
+      "probe_s": null, "skill_run_s": 14.986,
+      "steps": [
+        {"name": "read_skill_md", "duration_s": 20.8, "notes": "SKILL.md read returned error via awk"},
+        {"name": "nohup_background_start", "duration_s": 0.8, "notes": "Started caption_video.py in background"},
+        {"name": "poll_completion", "duration_s": 20.8, "notes": "Script reported 14986ms. API transcription: 132 words."}
+      ],
+      "llm_overhead_s": null, "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Caption script completed in 15.0s with API transcription."
+    },
+    "delivery": {
+      "upload_s": 4.0, "output_size_kb": 30793,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/cdb8afc7-7ea4-4fe4-92d5-7e5254592199/captioned.mp4",
+      "llm_overhead_s": null, "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload 3.1s actual. Output ~30.8MB."
+    }
+  },
+  "tokens": {
+    "input_tokens": 91, "output_tokens": 1656,
+    "cache_read_tokens": 42668, "cache_write_tokens": 5968,
+    "total_tokens": 50383
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3, "output_price_per_million": 15,
+    "cache_read_price_per_million": 0.30, "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.060
+  },
+  "totals": {
+    "tool_calls_s": 49.107, "llm_overhead_s": 28.197,
+    "wall_total_s": 77.304, "llm_pct": 36.5, "skill_pct": 63.5
+  }
+}

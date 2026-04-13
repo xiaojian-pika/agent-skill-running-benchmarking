@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "pikabot",
+    "notes": "v1.0.9 installed from CMS via direct API call (GET /api/hub/install?id=video-captions). Proxy API waterfall transcription (Whisper \u2192 Deepgram \u2192 Gemini) active \u2014 no local faster-whisper. Significant perf improvement vs round 1 (local whisper): 18.7s vs 29.1s script runtime.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli D'Amelio daily vlog, TikTok-style vertical short-form video",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-captions",
+    "version": "1.0.9",
+    "purpose": "Add TikTok-style word-by-word purple highlight captions to a 67.8s vertical 720x1280 HEVC video using proxy API transcription",
+    "expected_output": "MP4 with burned-in TikTok-style single-word captions, purple highlight, Bebas Neue font, all caps"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6 (anthropic/claude-sonnet-4-6)",
+    "system_prompt_tokens": 45097
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.117,
+      "skill_install_s": 0.162,
+      "subagent_start_s": 14.631,
+      "llm_overhead_s": 25.26,
+      "total_s": 40.17,
+      "tokens": {
+        "input_tokens": 6,
+        "output_tokens": 1800
+      },
+      "notes": "CMS API direct call worked perfectly (117ms). Zip 112KB downloaded in 153ms, extracted in 9ms. rootPrefix='video-captions/' - flattened correctly. v1.0.9: 1098 lines (vs 770 old), proxy API waterfall confirmed (19 occurrences). Subagent boot 14.6s."
+    },
+    "asset_acquisition": {
+      "download_s": 0.193,
+      "llm_overhead_s": 8.42,
+      "total_s": 8.61,
+      "tokens": {
+        "input_tokens": 2,
+        "output_tokens": 300
+      },
+      "notes": "S3 download ~25.6 MB/s, 4.79MB file in 193ms."
+    },
+    "execution": {
+      "probe_s": 0.085,
+      "skill_run_s": 18.655,
+      "steps": [
+        {
+          "name": "caption_script_full",
+          "duration_s": 18.655,
+          "notes": "Proxy API waterfall transcription: Whisper API hit first, succeeded (134 words, auto-detect en). Silence alignment, .ass generation, ffmpeg burn all included. 0.28x realtime (18.7s / 67.8s) \u2014 significant improvement vs local faster-whisper (0.43x)."
+        },
+        {
+          "name": "extract_audio",
+          "duration_s": null,
+          "notes": "Internal to script, not separately timed"
+        },
+        {
+          "name": "whisper_api_transcribe",
+          "duration_s": null,
+          "notes": "Proxy API waterfall \u2014 Whisper hit first, succeeded. 134 words detected."
+        },
+        {
+          "name": "fix_word_timings",
+          "duration_s": null,
+          "notes": "Silence alignment pass"
+        },
+        {
+          "name": "generate_ass",
+          "duration_s": null,
+          "notes": "Generated /tmp/bench_vc_output.ass"
+        },
+        {
+          "name": "ffmpeg_burn",
+          "duration_s": null,
+          "notes": "HEVC\u2192H.264 re-encode with caption overlay. Still the estimated bottleneck at ~70% of script time."
+        }
+      ],
+      "llm_overhead_s": 16.84,
+      "total_s": 35.58,
+      "tokens": {
+        "input_tokens": 5,
+        "output_tokens": 1500
+      },
+      "notes": "caption_video.py v1.0.9 ran in 18.655s for 67.8s video = 0.28x realtime. Previous round with local faster-whisper: 29.14s (0.43x). Proxy API waterfall saved ~10.5s (36% faster)."
+    },
+    "delivery": {
+      "upload_s": 17.628,
+      "output_size_kb": 30752,
+      "output_url": "https://cdn.pika.art/v2/files/agent/2da962ad-c89d-4f5d-aa3d-c0894c9eb1b7/bench-vc-charli-tiktok-r2.mp4",
+      "llm_overhead_s": 8.42,
+      "total_s": 26.05,
+      "tokens": {
+        "input_tokens": 4,
+        "output_tokens": 800
+      },
+      "notes": "Output 30752KB vs 4790KB input (6.4x size \u2014 HEVC\u2192H.264 transcode). Upload ~1.79 MB/s (17.6s for 31MB)."
+    }
+  },
+  "tokens": {
+    "input_tokens": 23,
+    "output_tokens": 6003,
+    "cache_read_tokens": 1211468,
+    "cache_write_tokens": 543319,
+    "total_tokens": 1760813
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 2.491001,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75
+  },
+  "totals": {
+    "tool_calls_s": 51.47,
+    "llm_overhead_s": 84.2,
+    "wall_total_s": 135.67,
+    "llm_pct": 62.1,
+    "skill_pct": 37.9
+  }
+}

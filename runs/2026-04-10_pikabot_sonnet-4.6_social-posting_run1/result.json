@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Each test case ran as a separate exec call. T1/T3 fast (~4.5s LLM each). T2 slower (14.5s, Instagram long-form caption). T4 variations=3 triggered known truncation bug: first LLM pass (28s) produced malformed JSON array (truncated mid-caption), fell back to single-variation second pass (14.5s). v1.0.7 includes dynamic max_tokens fix \u2014 bug still reproducible at this token budget. system_prompt_tokens = first-turn cacheRead.",
+    "test_input": {
+      "name": "pasta-tutorial-brief",
+      "description": "video tutorial: how to cook perfect pasta at home \u2014 tested 5 different techniques",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "social-posting",
+    "version": "1.0.7",
+    "purpose": "Generate platform-optimized captions + hashtags for a cooking tutorial video",
+    "expected_output": "JSON with caption, hashtags, full_post per test case; T4 expects 3 variations"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 164112
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.125,
+      "skill_install_s": 0.0,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 0.125,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "SP v1.0.7 already installed. CMS fetch only (0.125s)."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 pure LLM skill, no downloads"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 66.259,
+      "steps": [
+        {
+          "name": "t1_x_casual",
+          "duration_s": 4.579,
+          "notes": "exit=0 llm_s=4.5 caption_len=177 hashtags=2. X short-form, punchy. No warnings."
+        },
+        {
+          "name": "t2_instagram_casual",
+          "duration_s": 14.536,
+          "notes": "exit=0 llm_s=14.5 caption_len=846 hashtags=27. Instagram long-form with story arc. No warnings."
+        },
+        {
+          "name": "t3_tiktok_funny",
+          "duration_s": 4.539,
+          "notes": "exit=0 llm_s=4.5 caption_len=78 hashtags=4. TikTok short hook. No warnings."
+        },
+        {
+          "name": "t4_instagram_variations3",
+          "duration_s": 42.605,
+          "notes": "exit=0 llm_s=28.0+14.5=42.5 variations_returned=1 (expected 3). \u26a0\ufe0f Variations truncation: first LLM pass (28s) returned malformed JSON array (truncated mid-caption at token limit). Fell back to single-variation second pass (14.5s). Known bug \u2014 dynamic max_tokens fix in v1.0.7 still insufficient for 3 variations."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 66.259,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T4 variations bug confirmed still present in v1.0.7. T1+T3 fast (X/TikTok short-form ~4.5s). T2 slow (Instagram 14.5s, long-form). T4 double-LLM-call due to truncation+retry."
+    },
+    "delivery": {
+      "upload_s": 2.0,
+      "output_size_kb": 3.9,
+      "output_url": "https://cdn.pika.art/v2/files/agent/e36ca8cf-13fc-48d7-9329-ff6b1a477806/bench_sp_run1_result.json",
+      "llm_overhead_s": null,
+      "total_s": 2.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "result.json uploaded via pika-upload-file. 3.9KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": 6,
+    "output_tokens": 3180,
+    "cache_read_tokens": 992649,
+    "cache_write_tokens": 3795,
+    "total_tokens": 999630
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.3597
+  },
+  "totals": {
+    "tool_calls_s": 68.384,
+    "llm_overhead_s": 68.904,
+    "wall_total_s": 137.288,
+    "llm_pct": 50.2,
+    "skill_pct": 49.8
+  }
+}

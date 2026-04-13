@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "Codex",
+    "notes": "Fresh Codex benchmark run against the local long-to-short-video skill using API credentials sourced from ~/keys/.env and executing the pipeline with python3.11. No install step was required. Asset acquisition is recorded as null because source download happens internally inside S1. In this environment the implementation used the dc_solutions~youtube-downloader-pro Apify actor for all fresh runs rather than the scraper_one actor described in the prompt. T2 was a true cache-hit rerun that reused the downloaded source, face timeline, transcript, clip selection, and per-clip checkpoints. T4 requested 5 clips but S3 selected and produced only 4 clips without raising an error. Fresh runs emitted non-fatal ffmpeg/h264 'mmco: unref short failure' decode warnings during face timeline scanning.",
+    "test_input": {
+      "name": "matt-cutts-30days",
+      "description": "Matt Cutts - Try Something New for 30 Days YouTube talk benchmarked for short-form clip extraction.",
+      "url": "https://www.youtube.com/watch?v=UNP03fDSj1U",
+      "duration_s": 207.3
+    }
+  },
+  "task": {
+    "name": "long-to-short-video",
+    "version": "f4f6db08c84a66db5fd06dee63eefb84cb36b25c",
+    "purpose": "Benchmark the local long-to-short-video skill on a standard 3m27s YouTube source across fresh, cached, style-variant, and higher-clip-count scenarios.",
+    "expected_output": "Three to five vertical short-form MP4 clips with captions, virality scores, hooks, and CDN URLs."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally at ~/Pikabot/nova3-agent-skills/long-to-short-video/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable at the benchmark-harness level. Source download occurs inside the skill's S1 stage and is recorded inside execution notes."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1114.43,
+      "steps": [
+        {
+          "name": "t1_fresh_3clips_tiktok",
+          "duration_s": 335.385,
+          "notes": "actor=dc_solutions~youtube-downloader-pro cache_status=miss s1_apify_s=57 s1_download_s=0 s2_whisper_s=9 s3_llm_s=10 clips=3 source_duration_s=207.3 s4s5s6s7_per_clip_s_approx=86.5 top_virality=8.7 output_url=https://msaocnoosm1a4.pika.art/v2/files/agent/83813f97-5441-4258-89b2-21b9c4f2f79d/clip_01_final.mp4"
+        },
+        {
+          "name": "t2_cache_hit",
+          "duration_s": 0.193,
+          "notes": "cache_status=hit video_cache=8MB face_timeline_cache=104_samples transcript_cache=483_words clip_selection_cache=3 checkpoint_cache=3 clips=3 output_url=https://msaocnoosm1a4.pika.art/v2/files/agent/83813f97-5441-4258-89b2-21b9c4f2f79d/clip_01_final.mp4"
+        },
+        {
+          "name": "t3_fresh_3clips_hormozi",
+          "duration_s": 372.156,
+          "notes": "actor=dc_solutions~youtube-downloader-pro cache_status=miss s1_apify_s=50 s1_download_s=0 s2_whisper_s=11 s3_llm_s=10 clips=3 style=hormozi s4s5s6s7_per_clip_s_approx=100.4 top_virality=8.7 output_url=https://msaocnoosm1a4.pika.art/v2/files/agent/80de85a6-2d68-4883-98fd-ed3e39f8063f/clip_01_final.mp4"
+        },
+        {
+          "name": "t4_fresh_5clips_tiktok",
+          "duration_s": 406.696,
+          "notes": "actor=dc_solutions~youtube-downloader-pro cache_status=miss s1_apify_s=43 s1_download_s=0 s2_whisper_s=8 s3_llm_s=12 requested_clips=5 selected_clips=4 produced_clips=4 s4s5s6s7_per_clip_s_approx=85.9 top_virality=8.8 clip3_intro_trim_s=1.0 clip4_start_snapped=45_to_48 output_url=https://msaocnoosm1a4.pika.art/v2/files/agent/2384eeba-9e5b-4a92-90e1-e8aa1bbd2b3e/clip_01_final.mp4"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1114.43,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Stage timings came from the skill's --dev stderr logs plus shell-timed outer durations. Fresh-run notes include explicit S1/S2/S3 timings; the remaining per-clip approximation includes face timeline scan, extract, face detect, caption render, and upload because the implementation does not print timestamps around every S4-S7 boundary. T2 reused all caches and skipped clip generation entirely by loading checkpoint JSON files."
+    },
+    "delivery": {
+      "upload_s": null,
+      "output_size_kb": 89757.6,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/83813f97-5441-4258-89b2-21b9c4f2f79d/clip_01_final.mp4",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "The skill uploaded each finished clip during S7 and returned CDN URLs in stdout. The dev logs do not include explicit per-upload elapsed timestamps, so upload_s could not be measured precisely. output_size_kb is the summed size of all generated final mp4 artifacts across T1, T3, and T4 in /tmp."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-codex-tokens.py reported session-cumulative totals, not per-task usage. All 8 skills ran in a single Codex session with monotonically increasing token counts."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 1114.43,
+    "llm_overhead_s": 211.09,
+    "wall_total_s": 1325.52,
+    "llm_pct": 15.925071,
+    "skill_pct": 84.074929
+  }
+}

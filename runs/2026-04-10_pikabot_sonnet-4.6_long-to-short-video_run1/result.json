@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "T1 original exec (grand-zephyr) was SIGTERM'd during clip 3 CDN upload at ~510s. T1b re-run (tidy-fjord, 123.4s) completed clip 3 with all prior stages cached. T1 effective duration estimated ~442s (consistent with T3/T4 reference runs on same video). AV1 hw decode unavailable \u2014 H264 mmco warnings observed in stderr but face timeline completed in ~20s (not ~60s as AV1 would require). T4 requested 5 clips but LLM returned 3 (3m27s video only has 3 viable segments). Wall total includes T1 kill+rerun overhead (~130s extra vs clean run). system_prompt_tokens = first-turn cacheRead.",
+    "test_input": {
+      "name": "matt-cutts-30days",
+      "description": "Matt Cutts \u2014 Try Something New for 30 Days (TED Talk, 3m27s)",
+      "resolution": "720p",
+      "duration_s": 207,
+      "codec": "H264",
+      "size_kb": 8192,
+      "url": "https://www.youtube.com/watch?v=UNP03fDSj1U"
+    }
+  },
+  "task": {
+    "name": "long-to-short-video",
+    "version": "1.0.5",
+    "purpose": "Download YouTube video, select best clips via LLM, reframe 9:16, burn captions, upload to CDN",
+    "expected_output": "3-5 short MP4 clips (9:16) with virality scores and CDN URLs"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 182439
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.171,
+      "skill_install_s": 0.0,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 0.171,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "LTSV v1.0.5 already installed. CMS fetch only (0.171s)."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 download is internal to S1 skill stage (Apify), not a separate phase"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1326.296,
+      "steps": [
+        {
+          "name": "t1_fresh_3clips_tiktok",
+          "duration_s": 442.0,
+          "notes": "ESTIMATED (original SIGTERM'd at ~510s during clip 3 upload; t1b re-run 123.4s completed clip 3 only). s1_apify_s=42 s1_download_s=0 s1_face_s=~20 s2_whisper_s=6 s3_llm_s=9 s4s5s6_per_clip_avg_s=~121 s7_upload_s=~5_per_clip clips=3 virality=[8.7,7.1,5.0] cdn_clip1=https://cdn.pika.art/v2/files/agent/eca73133-aa53-4365-b313-85bf7dd60f5f/clip_01_final.mp4 cdn_clip2=https://cdn.pika.art/v2/files/agent/4037fb05-2d34-462f-aea4-25bc0ce18c8c/clip_02_final.mp4 cdn_clip3=https://cdn.pika.art/v2/files/agent/9fc11920-7eca-4a9a-9eff-401814ff00ac/clip_03_final.mp4"
+        },
+        {
+          "name": "t2_cache_hit",
+          "duration_s": 0.184,
+          "notes": "cache_status=hit s1=video_cache_hit face_timeline=cache transcript=cache clips_selection=cache all_3_clips=checkpoint_skip s7=no_upload_needed clips=3 virality=[8.7,7.1,5.0] (same as T1)"
+        },
+        {
+          "name": "t3_fresh_3clips_hormozi",
+          "duration_s": 442.66,
+          "notes": "s1_apify_s=36 s1_download_s=0 s1_face_s=~20 s2_whisper_s=7 s3_llm_s=10 s4s5s6_per_clip_avg_s=~121 s7_upload_s=~5_per_clip clips=3 virality=[8.7,7.2,5.0] cdn_clip1=https://cdn.pika.art/v2/files/agent/142ee933-04f3-4aad-ba5e-800eef5c66e0/clip_01_final.mp4 cdn_clip2=https://cdn.pika.art/v2/files/agent/ca4060b9-28d0-4408-b551-68a3639cd9f5/clip_02_final.mp4 cdn_clip3=https://cdn.pika.art/v2/files/agent/bded02ab-e2ab-491a-971f-3467ae48c7ec/clip_03_final.mp4"
+        },
+        {
+          "name": "t4_fresh_5clips_tiktok",
+          "duration_s": 441.452,
+          "notes": "s1_apify_s=52 s1_download_s=0 s1_face_s=~20 s2_whisper_s=8 s3_llm_s=12 s4s5s6_per_clip_avg_s=~117 s7_upload_s=~5_per_clip clips=3 (requested 5; LLM found only 3 viable segments in 3m27s video) virality=[8.7,7.1,6.3] cdn_clip1=https://cdn.pika.art/v2/files/agent/01951abf-d658-431d-b8b7-735f2f1a5cf8/clip_01_final.mp4 cdn_clip2=https://cdn.pika.art/v2/files/agent/6d5bdfbf-9729-467c-8273-92884df56695/clip_02_final.mp4 cdn_clip3=https://cdn.pika.art/v2/files/agent/be124961-2787-48e5-82fa-3a73805569ff/clip_03_final.mp4"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1326.296,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T4 clips_requested=5 but clips_returned=3 (3m27s video has only 3 viable 45s segments). S4-S7 per clip averages ~119s across all runs (dominated by OpenCV face detection + reframe + caption burn). Apify download consistently ~36-52s. H264 face timeline ~20s (fast vs AV1). execution.total_s = sum of 4 test steps (T1 estimated). tool_calls_s includes T1b_rerun (123.4s extra exec for clip 3 completion)."
+    },
+    "delivery": {
+      "upload_s": 15.0,
+      "output_size_kb": 35000,
+      "output_url": "https://cdn.pika.art/v2/files/agent/eca73133-aa53-4365-b313-85bf7dd60f5f/clip_01_final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 15.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "9 clips uploaded across T1/T3/T4 (T2 cache hit, no upload). Total ~35MB. upload_s estimated ~15s cumulative. output_url = T1 clip 1 CDN URL."
+    }
+  },
+  "tokens": {
+    "input_tokens": 23,
+    "output_tokens": 13352,
+    "cache_read_tokens": 3384881,
+    "cache_write_tokens": 447135,
+    "total_tokens": 3845391
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 2.8926
+  },
+  "totals": {
+    "tool_calls_s": 1449.867,
+    "llm_overhead_s": 473.733,
+    "wall_total_s": 1923.6,
+    "llm_pct": 24.6,
+    "skill_pct": 75.4
+  }
+}

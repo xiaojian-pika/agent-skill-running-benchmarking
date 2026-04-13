@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "Codex",
+    "notes": "Fresh rerun of the Codex benchmark prompt with each timed step executed separately. No install step and no upload step. The script was run with --target-lang es --no-lip-sync. Internal stage timings were inferred from the script's own elapsed-time log markers. The measured skill_run duration exceeded the last logged pipeline stage because cloned-voice cleanup continued after the script printed Done:. Token totals came from tools/extract-codex-tokens.py --latest --json after the benchmark run.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Portrait vlog benchmark asset with spoken English audio for Spanish dubbing without lip sync.",
+      "resolution": "720x1280",
+      "duration_s": 67.801995,
+      "codec": "hevc+aac",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "eeb6d71d06851874623e505c94f7f80547c78925",
+    "purpose": "Benchmark the local video-translation skill against the standard 67.8s daily vlog asset using Spanish dubbing with no lip sync.",
+    "expected_output": "A Spanish-dubbed mp4 with the original video track and replaced audio, using a cloned speaker voice when cloning succeeds."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally at ~/code/nova3-agent-skills/video-translation/."
+    },
+    "asset_acquisition": {
+      "download_s": 0.098,
+      "llm_overhead_s": null,
+      "total_s": 0.098,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Downloaded the benchmark asset to /tmp/bench_vt_input.mp4."
+    },
+    "execution": {
+      "probe_s": 0.009,
+      "skill_run_s": 74.306,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 1.2,
+          "notes": "Inferred from stage log: Extracting audio started at 0.0s and Whisper transcription started at 1.2s."
+        },
+        {
+          "name": "whisper_transcribe",
+          "duration_s": 6.2,
+          "notes": "Inferred from stage log: Whisper stage ran from 1.2s to 7.4s. Transcript length was 691 chars."
+        },
+        {
+          "name": "translate_gpt4o",
+          "duration_s": 3.9,
+          "notes": "Inferred from stage log: translation ran from 7.4s to 11.3s. Translated text length was 734 chars."
+        },
+        {
+          "name": "voice_clone_elevenlabs",
+          "duration_s": 4.1,
+          "notes": "Inferred from stage log: voice cloning ran from 11.3s to 15.4s. Cloned voice ID: nRCuzgUNNvOsfGEmxMHv."
+        },
+        {
+          "name": "tts_eleven_v3",
+          "duration_s": 16.4,
+          "notes": "Inferred from stage log: TTS ran from 15.4s to 31.8s using eleven_v3. Output TTS audio size was 699.6 KB."
+        },
+        {
+          "name": "replace_audio_ffmpeg",
+          "duration_s": 0.2,
+          "notes": "Inferred approximately from the final stage marker at 31.8s and the rounded Done line at 32s."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 74.315,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Execution total is probe + full skill_run. Named substep durations come from the script's elapsed-time stage markers and sum to about 32s; the remaining ~42.3s inside skill_run occurred after Done: was printed and likely came from cloned-voice cleanup before process exit."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 3368,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only; output remained on disk at /tmp/bench_vt_output.mp4."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-codex-tokens.py reported session-cumulative totals, not per-task usage. All 8 skills ran in a single Codex session with monotonically increasing token counts."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 74.413,
+    "llm_overhead_s": 14.15,
+    "wall_total_s": 88.563,
+    "llm_pct": 15.977327,
+    "skill_pct": 84.022673
+  }
+}

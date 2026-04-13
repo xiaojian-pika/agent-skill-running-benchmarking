@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Each test case ran as a separate exec call. T1 found 10 results (TikTok+Instagram). T2 found 9 results (X). T3 used first T1 URL (TikTok @pandafitness7, 15s, 1010KB); Anthropic proxy timed out on LLM synthesis pass, fell back to OpenAI successfully. T4 trending: TikTok native trending returned 0, fell back to keyword searches across 5 categories \u00d7 3 platforms. system_prompt_tokens = first-turn cacheRead.",
+    "test_input": {
+      "name": "social-trend-queries",
+      "description": "fitness(TikTok+IG), cooking(X), analyze(T1 URL), trending",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "viral-trend-finder",
+    "version": "1.0.6",
+    "purpose": "Find trending content by topic/platform and run full video analysis pipeline",
+    "expected_output": "JSON with trend results per query; storyboard + hook copy for T3 analyze"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 130789
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.121,
+      "skill_install_s": 0.0,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 0.121,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "VTF v1.0.6 already installed. CMS fetch only (0.121s)."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 video download is internal to T3 skill execution (not a separate phase)"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 312.403,
+      "steps": [
+        {
+          "name": "t1_find_fitness",
+          "duration_s": 20.696,
+          "notes": "exit=0 platforms=tiktok,instagram results=10 (5 TikTok + 5 Instagram). Apify scraper. Top result: @pandafitness7 239.6K views."
+        },
+        {
+          "name": "t2_find_cooking_x",
+          "duration_s": 2.005,
+          "notes": "exit=0 platform=x results=9. RapidAPI fast (2s). Top result: 798K views."
+        },
+        {
+          "name": "t3_analyze",
+          "duration_s": 220.679,
+          "notes": "exit=0 url=https://www.tiktok.com/@pandafitness7/video/7610312660403375390 shots=7 frames=15 video_size=1010KB video_duration=~15s. Sub-stages inferred from stderr: metadata_s=~2 download_s=~5 frame_extract_s=~3 gemini_vision_s=~130 llm_synthesis_s=~80. \u26a0\ufe0f Anthropic proxy ReadTimeout on LLM synthesis (2 retries), fell back to OpenAI successfully."
+        },
+        {
+          "name": "t4_trending",
+          "duration_s": 69.023,
+          "notes": "exit=0 results=10. TikTok native trending returned 0 \u2014 fell back to 5 keyword searches \u00d7 3 platforms (15 searches total). 2 long videos skipped (>180s). results: tiktok=views up to 33.4M."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 312.403,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T3 analyze is the clear bottleneck (220.7s = 70.6% of execution). Gemini Vision (15 frames concurrent) + LLM synthesis with OpenAI fallback. T2 is fastest (2s, RapidAPI X)."
+    },
+    "delivery": {
+      "upload_s": 2.3,
+      "output_size_kb": 4.1,
+      "output_url": "https://cdn.pika.art/v2/files/agent/e405b9cf-2f03-4f6e-a3ac-5e686caee152/bench_vtf_run1_result.json",
+      "llm_overhead_s": null,
+      "total_s": 2.3,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "result.json uploaded via pika-upload-file. 4.1KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": 7,
+    "output_tokens": 3316,
+    "cache_read_tokens": 848024,
+    "cache_write_tokens": 161163,
+    "total_tokens": 1012510
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.9085
+  },
+  "totals": {
+    "tool_calls_s": 314.824,
+    "llm_overhead_s": 69.147,
+    "wall_total_s": 383.971,
+    "llm_pct": 18.0,
+    "skill_pct": 82.0
+  }
+}

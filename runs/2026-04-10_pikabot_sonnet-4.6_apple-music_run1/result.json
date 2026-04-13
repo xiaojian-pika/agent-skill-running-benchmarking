@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Clean test, no input video. Pure Apple Music API benchmark. Skill compute is trivially fast (<1s per call). LLM overhead dominates. No asset_acquisition phase. Wall_total includes estimated 1s upload.",
+    "test_input": {
+      "name": "N/A",
+      "description": "Search query only. Query: bohemian rhapsody queen",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "1.0.2",
+    "purpose": "Search Apple Music for bohemian rhapsody queen and download 30s preview as M4A",
+    "expected_output": "A 30-second M4A preview file of Bohemian Rhapsody by Queen"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 107266
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.189,
+      "skill_install_s": 1.944,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 2.133,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "hub show + hub install v1.0.2. No heavy deps."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 no input video. Search query only."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 0.572,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.541,
+          "notes": "iTunes Search API, 5 results for bohemian rhapsody queen. Top: Greatest Hits I,II,III. 541ms."
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 0.572,
+          "notes": "Full run: search + download 30s M4A preview (984KB output). 572ms total."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1.113,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Both steps run separately. search_and_download re-runs search internally. Total skill compute: ~1.1s."
+    },
+    "delivery": {
+      "upload_s": 1.0,
+      "output_size_kb": 961,
+      "output_url": "https://cdn.pika.art/v2/files/agent/03eea31f-2c7c-4e24-a5e6-6e6330556b4f/bench_am_round1_bohemian_rhapsody_preview.m4a",
+      "llm_overhead_s": null,
+      "total_s": 1.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "pika-upload-file. 961KB M4A. Upload time estimated 1s (wall_end recorded before upload)."
+    }
+  },
+  "tokens": {
+    "input_tokens": 8,
+    "output_tokens": 1537,
+    "cache_read_tokens": 926552,
+    "cache_write_tokens": 11270,
+    "total_tokens": 939367
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.3433
+  },
+  "totals": {
+    "tool_calls_s": 4.246,
+    "llm_overhead_s": 46.619,
+    "wall_total_s": 50.865,
+    "llm_pct": 91.7,
+    "skill_pct": 8.3
+  }
+}

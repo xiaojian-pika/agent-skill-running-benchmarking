@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Round 2 re-run (correct methodology). Each test case ran as a separate exec call so llm_overhead is properly measured as agent thinking time between steps (46.8s, 16.5%). All 3 runs had LLM JSON truncation on pass 2 but auto-repaired successfully. T1 Instagram fetch slowest (31.7s, Apify). T2 X fetch fastest (1.5s, RapidAPI). T3 TikTok (6.4s, Apify). LLM analysis consistent at 62-70s/account (2-pass Anthropic calls). system_prompt_tokens is first-turn cacheRead (includes system prompt + prior conversation context).",
+    "test_input": {
+      "name": "social-handles",
+      "description": "@natgeo (instagram), @NASA (x), @khaby.lame (tiktok)",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "social-account-analyzer",
+    "version": "1.0.8",
+    "purpose": "Analyze 3 social media accounts across Instagram, X/Twitter, and TikTok",
+    "expected_output": "JSON with profile metrics, engagement analysis, and growth recommendations per account"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 111167
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.117,
+      "skill_install_s": 0.0,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 0.117,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "SAA v1.0.8 already installed. CMS fetch only (0.117s). No subagent used."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 pure API+LLM skill, no video download"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 237.552,
+      "steps": [
+        {
+          "name": "t1_instagram_natgeo",
+          "duration_s": 96.927,
+          "notes": "exit=0 followers=274960938 eng_rate=0.03% fetch_s=31.7 llm_s=65.0 total_s=96.8 \u2014 \u26a0\ufe0f LLM JSON truncated pass2 auto-repaired. Apify Instagram scraper."
+        },
+        {
+          "name": "t2_x_nasa",
+          "duration_s": 63.865,
+          "notes": "exit=0 followers=90943693 eng_rate=0.03% fetch_s=1.5 llm_s=62.2 total_s=63.7 \u2014 \u26a0\ufe0f LLM JSON truncated pass2 auto-repaired. RapidAPI X fetch fast."
+        },
+        {
+          "name": "t3_tiktok_khaby",
+          "duration_s": 76.76,
+          "notes": "exit=0 followers=160600000 eng_rate=0.9% fetch_s=6.4 llm_s=70.2 total_s=76.6 \u2014 \u26a0\ufe0f LLM JSON truncated pass2 auto-repaired. Apify TikTok scraper."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 237.552,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "All 3 accounts succeeded. LLM truncation (pass 2) triggered on all 3 \u2014 auto-repair successful each time. Per-account LLM time: T1=65.0s T2=62.2s T3=70.2s."
+    },
+    "delivery": {
+      "upload_s": 2.1,
+      "output_size_kb": 3.8,
+      "output_url": "https://cdn.pika.art/v2/files/agent/21f2b9ad-1132-47cd-acde-43592672faf8/bench_saa_round1_result_v2.json",
+      "llm_overhead_s": null,
+      "total_s": 2.1,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "result.json uploaded via pika-upload-file. 3.8KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": 6,
+    "output_tokens": 3184,
+    "cache_read_tokens": 676178,
+    "cache_write_tokens": 3814,
+    "total_tokens": 683182
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.2649
+  },
+  "totals": {
+    "tool_calls_s": 239.769,
+    "llm_overhead_s": 46.84,
+    "wall_total_s": 286.609,
+    "llm_pct": 16.3,
+    "skill_pct": 83.7
+  }
+}

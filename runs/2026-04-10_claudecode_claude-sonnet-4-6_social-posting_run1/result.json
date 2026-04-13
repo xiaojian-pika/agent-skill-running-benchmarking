@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "T1/T2/T3/T4 executed in a single continuous bash call — WALL_START and WALL_END in the same shell, no CC activity between runs. LLM overhead 0.134s is measurement noise. T4 --variations 3 hit degraded path: Anthropic ReadTimeout (30.1s) → OpenAI fallback returned invalid JSON array → fell back to single-caption Anthropic call (16.0s); returned 1 variation instead of 3. Token delta from session JSONL (14:21:40–14:24:27 UTC window, 60s pre-buffer); covers 8 CC messages.",
+    "test_input": {
+      "name": "pasta-tutorial-brief",
+      "description": "video tutorial: how to cook perfect pasta at home — tested 5 different techniques",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "social-posting",
+    "version": "f8353cf",
+    "purpose": "Generate platform-optimized captions and hashtags for social media posts using LLM; supports single captions and A/B variation sets across X, Instagram, TikTok",
+    "expected_output": "JSON with caption, hashtags, full_post per test case; array of variation objects for T4"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/Pikabot/nova3-agent-skills/social-posting/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No assets — pure LLM skill, no downloads required."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 106.974,
+      "steps": [
+        {
+          "name": "t1_x_casual",
+          "duration_s": 6.748,
+          "notes": "platform=x tone=casual exit=0. llm_s=6.6 (anthropic). caption_len=172 hashtags=2 (['#pasta','#cooking']) full_post_len=188. Caption within X 280-char limit. Contrarian take style."
+        },
+        {
+          "name": "t2_instagram_casual",
+          "duration_s": 18.075,
+          "notes": "platform=instagram tone=casual exit=0. llm_s=18.0 (anthropic). caption_len=990 hashtags_count=30. APP formula (Agree→Promise→Preview) applied. Longer response = longer LLM call vs T1/T3."
+        },
+        {
+          "name": "t3_tiktok_funny",
+          "duration_s": 7.302,
+          "notes": "platform=tiktok tone=funny exit=0. llm_s=7.2 (anthropic). caption_len=76 hashtags_count=4. Short-form hook format as expected (<100 chars). Gen-Z register used ('fr', 'lied to you')."
+        },
+        {
+          "name": "t4_instagram_variations3",
+          "duration_s": 74.849,
+          "notes": "platform=instagram tone=casual --variations 3 exit=0. llm_s=74.8 (30.1+28.7+16.0 across 3 calls). variations_returned=1 (expected 3). caption_len=910 hashtags_count=30. ⚠️ Degraded path: Anthropic ReadTimeout after 30.1s → OpenAI fallback (28.7s) returned invalid JSON array → fell back to single-caption Anthropic call (16.0s). Root cause: proxy timeout, not token truncation (differs from pikabot T4 which was truncation-driven)."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 106.974,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = T1+T2+T3+T4 (6.748+18.075+7.302+74.849). T1/T3 fast (6-7s, short outputs). T2 slower (18s, long Instagram caption + 30 hashtags). T4 dominated (74.8s) due to Anthropic proxy timeout + OpenAI fallback failure + retry. Skill version f8353cf fixes --variations max_tokens scaling but did not prevent the proxy ReadTimeout that triggered the fallback chain."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 8,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — local delivery. T1 stdout 0.8KB, T2 stdout 3.4KB, T3 stdout 0.7KB, T4 stdout 3.3KB. Total ~8.2KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 106.974,
+    "llm_overhead_s": 0.134,
+    "wall_total_s": 107.108,
+    "llm_pct": 0.125,
+    "skill_pct": 99.875
+  }
+}

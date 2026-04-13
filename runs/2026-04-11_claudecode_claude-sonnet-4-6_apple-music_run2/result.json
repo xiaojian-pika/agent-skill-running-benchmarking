@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "Search query: 'bohemian rhapsody queen'. Top result: Bohemian Rhapsody by Queen (355s). Preview download (678ms) fast — Apple CDN warm from prior runs. Staging key ak_zBO3WUAGn... used.",
+    "test_input": {
+      "name": "bohemian rhapsody queen",
+      "description": "Text search query — no video input for this skill",
+      "resolution": null,
+      "duration_s": null,
+      "codec": null,
+      "size_kb": null,
+      "url": null
+    }
+  },
+  "task": {
+    "name": "apple-music",
+    "version": "f323b95",
+    "purpose": "Search Apple Music catalog and download 30s preview for 'bohemian rhapsody queen'",
+    "expected_output": "30s M4A preview of top search result"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/apple-music-reference/"
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No video download — this skill takes a text search query, not a video input"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 0.678,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.520,
+          "notes": "Apple Music catalog search via staging proxy; top result: Bohemian Rhapsody by Queen"
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 0.678,
+          "notes": "Search + 30s preview download; 964 KB M4A. Apple CDN warm from prior runs."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1.198,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = search + search_and_download (0.520 + 0.678). No probe step (no video input)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 964,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": 6,
+    "output_tokens": 1698,
+    "cache_read_tokens": 840553,
+    "cache_write_tokens": 1897,
+    "effective_input_tokens": 842456,
+    "total_tokens": 844154,
+    "_note": "Extracted with --after 2026-04-11T17:19:38Z --before 2026-04-11T17:19:54Z (WALL_START to WALL_END, 6 messages)."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.2848
+  },
+  "totals": {
+    "tool_calls_s": 1.198,
+    "llm_overhead_s": 14.838,
+    "wall_total_s": 16.036,
+    "llm_pct": 92.5,
+    "skill_pct": 7.5
+  }
+}

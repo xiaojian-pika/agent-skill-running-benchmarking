@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "Pure API skill — zero CPU work. Search result: Bohemian Rhapsody by Queen, Greatest Hits I II & III, 355s duration. Preview: 30s M4A, 964 KB. Token data from session c20b4afb (cumulative whole session). Multiple concurrent CC sessions active; used explicit session file path to avoid picking wrong session.",
+    "test_input": {
+      "name": "N/A",
+      "description": "Search query: 'bohemian rhapsody queen'",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "b2f439d",
+    "purpose": "Search Apple Music for 'bohemian rhapsody queen' and download the 30-second preview",
+    "expected_output": "30-second M4A preview of Bohemian Rhapsody by Queen"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/apple-music-reference/"
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No video download — pure search + API skill"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 8.077,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.611,
+          "notes": "apple_music.py --search-only 'bohemian rhapsody queen'; returned top result metadata only"
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 8.077,
+          "notes": "apple_music.py full run; search + download 30s M4A preview. Track: Bohemian Rhapsody by Queen, album: Greatest Hits I II & III, 355s duration"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 8.688,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = search_apple_music + search_and_download (0.611+8.077)"
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 964,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 8.688,
+    "llm_overhead_s": 17.407,
+    "wall_total_s": 26.095,
+    "llm_pct": 66.7,
+    "skill_pct": 33.3
+  }
+}

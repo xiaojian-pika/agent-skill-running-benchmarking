@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "mingzhi",
+    "notes": "Run2 re-run. Beat-sync 57.7s — fastest MiniMax run. Clean single-attempt execution. SKILL.md read failed on first attempt (awk), agent retried with different method.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style short vlog, English speech, vertical format",
+      "resolution": "720x1280", "duration_s": 67.8, "codec": "HEVC+AAC", "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-beat-sync",
+    "version": "latest (skill_019qTyV9aqgidoz2AhZTf8S1, v1775907225757431)",
+    "purpose": "Add hype beat-synced background music to 67.8s vlog video",
+    "expected_output": "Video with hype beat-synced background music"
+  },
+  "platform": {
+    "name": "managed-claude-agent", "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6", "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {"cms_fetch_s": null, "skill_install_s": null, "subagent_start_s": null, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "Skills pre-loaded."},
+    "asset_acquisition": {"download_s": 2.9, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "Downloaded 4.7MB. SKILL.md read required retry (11.1s total)."},
+    "execution": {
+      "probe_s": null, "skill_run_s": 57.725,
+      "steps": [
+        {"name": "read_skill_md", "duration_s": 11.1, "notes": "First read failed (awk), agent retried"},
+        {"name": "nohup_background_start", "duration_s": 0.8, "notes": "Started beat_sync.py in background"},
+        {"name": "poll_completion", "duration_s": 60.7, "notes": "Script reported 57725ms. MiniMax was fast this run."}
+      ],
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Beat-sync 57.7s — fastest MiniMax run. Single clean attempt."
+    },
+    "delivery": {
+      "upload_s": 3.2, "output_size_kb": 16508,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/cb9a8983-e4e1-4ef7-85a1-277e5976025f/beat_sync_output.mp4",
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload 2.4s actual. Output 16.5MB."
+    }
+  },
+  "tokens": {"input_tokens": 177, "output_tokens": 1924, "cache_read_tokens": 73747, "cache_write_tokens": 8078, "total_tokens": 83926},
+  "cost": {"model": "Claude Sonnet 4.6", "input_price_per_million": 3, "output_price_per_million": 15, "cache_read_price_per_million": 0.30, "cache_write_price_per_million": 3.75, "estimated_cost_usd": 0.082},
+  "totals": {"tool_calls_s": 81.067, "llm_overhead_s": 36.704, "wall_total_s": 117.771, "llm_pct": 31.2, "skill_pct": 68.8}
+}

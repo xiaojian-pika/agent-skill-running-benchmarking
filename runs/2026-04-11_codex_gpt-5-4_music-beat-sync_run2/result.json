@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "Codex",
+    "notes": "Fresh rerun of the latest Codex benchmark prompt, executed step by step. No install step and no upload step. The full skill run completed successfully with MiniMax music generation as the long pole. Token totals were isolated to this benchmark window with extract-codex-tokens.py --latest --after ... --before ... --json.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Portrait vlog benchmark asset with spoken English audio for hype beat-synced background music.",
+      "resolution": "720x1280",
+      "duration_s": 67.801995,
+      "codec": "hevc+aac",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-beat-sync",
+    "version": "f323b95d010e0dfda2aacb8183ce250ff53eade5",
+    "purpose": "Benchmark the local music-beat-sync skill against the standard 67.8s daily vlog asset using hype vibe beat-synced background music.",
+    "expected_output": "A locally generated mp4 with hype background music and scene cuts aligned to beats."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally at ~/code/nova3-agent-skills/music-beat-sync/."
+    },
+    "asset_acquisition": {
+      "download_s": 0.15,
+      "llm_overhead_s": null,
+      "total_s": 0.15,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Downloaded the benchmark asset to /tmp/bench_bs_input.mp4."
+    },
+    "execution": {
+      "probe_s": 0.008,
+      "skill_run_s": 117.846,
+      "steps": [
+        {
+          "name": "scene_detection",
+          "duration_s": 2.365,
+          "notes": "Standalone ffmpeg scene detection found 26 cuts."
+        },
+        {
+          "name": "music_generation_minimax",
+          "duration_s": 80.1,
+          "notes": "Parsed from the dev log emitted by beat_sync.py during the full skill run. Generated a 16.6s track for vibe=hype at 120 BPM."
+        },
+        {
+          "name": "beat_alignment_encode",
+          "duration_s": null,
+          "notes": "Not individually timed by the benchmark prompt. During the full skill run, auto mode selected sync and aligned 26 detected cuts across 27 encoded segments."
+        },
+        {
+          "name": "audio_mix",
+          "duration_s": null,
+          "notes": "Not individually timed by the benchmark prompt. Full run used replace-mode audio mixing in S5."
+        },
+        {
+          "name": "beat_sync_full",
+          "duration_s": 117.846,
+          "notes": "Full beat_sync.py run with --vibe hype --dev. Produced /tmp/beat-sync/beat_sync_output.mp4."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 120.219,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Execution total is the sum of separately measured execution commands: probe + standalone scene detection + full beat_sync.py run."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 16448,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only; output remained on disk at /tmp/beat-sync/beat_sync_output.mp4."
+    }
+  },
+  "tokens": {
+    "input_tokens": 1014362,
+    "output_tokens": 1439,
+    "cache_read_tokens": 1001600,
+    "cache_write_tokens": null,
+    "total_tokens": 1015801,
+    "_note": "Extractor-authoritative total token delta from extract-codex-tokens.py for this benchmark window. cache_read_tokens and cache_write_tokens are reported separately and are not added again into total_tokens here."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "cache_read_price_per_million": 0,
+    "cache_write_price_per_million": 0,
+    "estimated_cost_usd": 2.550295,
+    "_note": "Codex cost in this artifact follows extract-codex-tokens.py methodology: price input_tokens and output_tokens only. cache_read_tokens and cache_write_tokens are retained as informational fields and are not separately charged here."
+  },
+  "totals": {
+    "tool_calls_s": 120.369,
+    "llm_overhead_s": 13.474,
+    "wall_total_s": 133.843,
+    "llm_pct": 10.06717,
+    "skill_pct": 89.93283
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "Clean run — no retries. MiniMax generated a 15.9s track for a 67.8s video. music_generation_minimax timing from skill log (123.4s). beat_alignment_encode estimated as beat_sync_full minus music_generation (37.1s). Staging key ak_zBO3WUAGn... used.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style daily vlog, English speech",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-beat-sync",
+    "version": "f323b95",
+    "purpose": "Add hype beat-synced background music to a 67.8s vlog using MiniMax API, sync 26 scene cuts to beats",
+    "expected_output": "Video with hype beat-synced background music, scene cuts aligned to beats"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/music-beat-sync/"
+    },
+    "asset_acquisition": {
+      "download_s": 0.178,
+      "llm_overhead_s": null,
+      "total_s": 0.178,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3 us-east-1 to devbox"
+    },
+    "execution": {
+      "probe_s": 0.008,
+      "skill_run_s": 160.521,
+      "steps": [
+        {
+          "name": "scene_detection",
+          "duration_s": 2.343,
+          "notes": "ffmpeg select filter standalone; 26 scene cuts at threshold 0.35"
+        },
+        {
+          "name": "music_generation_minimax",
+          "duration_s": 123.4,
+          "notes": "From skill log: 'Music generated in 123.4s (track: 15.9s)'. Prompt: 120 BPM trap hip-hop hype."
+        },
+        {
+          "name": "beat_alignment_encode",
+          "duration_s": 37.121,
+          "notes": "Estimated: beat_sync_full (160.521) minus music_generation (123.4). Includes beat analysis, sync-mode cut alignment (26 cuts), ffmpeg encode."
+        },
+        {
+          "name": "audio_mix",
+          "duration_s": null,
+          "notes": "Included within beat_alignment_encode; S5 audio mix (replace mode) not separately timed"
+        },
+        {
+          "name": "beat_sync_full",
+          "duration_s": 160.521,
+          "notes": "Full beat_sync.py --vibe hype --dev run. Output: /tmp/beat-sync/beat_sync_output.mp4 (16.1 MB)"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 163.050,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = probe + scene_detection + beat_sync_full (0.008 + 2.343 + 160.521)"
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 16440,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": 10,
+    "output_tokens": 2133,
+    "cache_read_tokens": 1452836,
+    "cache_write_tokens": 3414,
+    "effective_input_tokens": 1456260,
+    "total_tokens": 1458393,
+    "_note": "Extracted with --after 2026-04-11T17:21:40Z --before 2026-04-11T17:24:46Z (WALL_START to WALL_END, 10 messages)."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.4807
+  },
+  "totals": {
+    "tool_calls_s": 163.050,
+    "llm_overhead_s": 22.814,
+    "wall_total_s": 185.864,
+    "llm_pct": 12.3,
+    "skill_pct": 87.7
+  }
+}

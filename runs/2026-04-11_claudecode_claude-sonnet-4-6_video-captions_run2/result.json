@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "Run2: API transcription path (Whisper via staging nova3-pika proxy, key ak_zBO3WUAGn...). Whisper API succeeded on first try (132 words). Steps run separately per prompt instructions.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style daily vlog, English speech",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-captions",
+    "version": "f323b95",
+    "purpose": "Add TikTok-style word-highlight captions to a 67.8s English vlog using API transcription waterfall (Whisper → Deepgram → Gemini)",
+    "expected_output": "Captioned mp4 with tiktok-style word highlights burned in"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/video-captions/"
+    },
+    "asset_acquisition": {
+      "download_s": 0.314,
+      "llm_overhead_s": null,
+      "total_s": 0.314,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3 us-east-1 to devbox"
+    },
+    "execution": {
+      "probe_s": 0.009,
+      "skill_run_s": 10.871,
+      "steps": [
+        {
+          "name": "caption_script_full",
+          "duration_s": 10.871,
+          "notes": "Full caption_video.py --style tiktok with API transcription. Includes internal audio extraction + Whisper API transcription (132 words) + ASS generation + ffmpeg burn."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 10.880,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = probe + caption_script_full (0.009 + 10.871)"
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 30712,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": 8,
+    "output_tokens": 1720,
+    "cache_read_tokens": 940602,
+    "cache_write_tokens": 2299,
+    "effective_input_tokens": 942909,
+    "total_tokens": 944629,
+    "_note": "Extracted with --after 2026-04-11T17:08:52Z --before 2026-04-11T17:09:20Z (WALL_START to WALL_END, 8 messages)."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.3166
+  },
+  "totals": {
+    "tool_calls_s": 11.194,
+    "llm_overhead_s": 16.845,
+    "wall_total_s": 28.039,
+    "llm_pct": 60.1,
+    "skill_pct": 39.9
+  }
+}

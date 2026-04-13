@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Fresh session on pika-media-env. All 3 accounts analyzed successfully. T1+T2+T3 were issued as parallel tool_use calls (same timestamp 12:18:20Z); container ran them sequentially (T1=124.5s, T2=83.0s, T3=96.5s, total=304s). All 3 triggered LLM JSON truncation on pass 2, all auto-repaired. NOTE: in-script LLM (~75s × 3 = 227.5s) is inside tool_calls_s; use true_llm_pct (76.2%) for cross-skill comparison. Session: sesn_011CZv5PBenrtU3Pi5ta79ry.",
+    "test_input": {
+      "name": "social-handles",
+      "description": "@natgeo (instagram) @NASA (x) @khaby.lame (tiktok)",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+
+  "task": {
+    "name": "social-account-analyzer",
+    "version": "latest (skill_01KYxQp27khiqgR7F1TpqL6q)",
+    "purpose": "Analyze 3 social accounts: @natgeo on Instagram, @NASA on X/Twitter, @khaby.lame on TikTok",
+    "expected_output": "JSON with profile metrics, engagement analysis, and growth recommendations per account"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Skills pre-loaded. Dependencies pre-installed in pika-media-env."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No video download — SAA is API+LLM only."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 304.01,
+      "steps": [
+        {
+          "name": "read_skill_md",
+          "duration_s": 3.1,
+          "notes": "Agent read /workspace/skills/social-account-analyzer/SKILL.md before running scripts."
+        },
+        {
+          "name": "t1_instagram",
+          "duration_s": 124.49,
+          "notes": "script_ms=124490. fetch_s=49.1 (own Connect Proxy failed, fell back to Apify public scraper). llm_s=74.9 (pass1+pass2, truncation+repair on pass2). success=true. @natgeo: 274.9M followers, ER=0.03%, avg_likes=71K, avg_views=321K, posting_freq=3.8×/week, best_format=Carousel, trend=insufficient_data."
+        },
+        {
+          "name": "t2_x",
+          "duration_s": 83.04,
+          "notes": "script_ms=83040. fetch_s=6.7 (Nova auth failed, fell back to RapidAPI public). llm_s=76.0 (pass1+pass2, truncation+repair on pass2). success=true. @NASA: 90.9M followers, ER=0.03%, avg_likes=26.6K, avg_views=727K, posting_freq=20×/week, best_format=Video, trend=Growing."
+        },
+        {
+          "name": "t3_tiktok",
+          "duration_s": 96.48,
+          "notes": "script_ms=96482. fetch_s=19.6 (Apify clockworks~free-tiktok-scraper). llm_s=76.6 (pass1+pass2, truncation+repair on pass2). success=true. @khaby.lame: 160.7M followers, ER=0.91%, avg_likes=1.44M, avg_views=30.17M, posting_freq=1×/week, best_format=Video, trend=Growing."
+        }
+      ],
+      "llm_overhead_s": 43.1,
+      "total_s": 355.267,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T1+T2+T3 bash calls issued in parallel (same timestamp 12:18:20Z); container executed sequentially (T1→T2→T3). All 3 triggered LLM JSON truncation on pass 2, all auto-repaired. llm_overhead_s (43.1s) = inter-tool orchestration LLM only. In-script LLM (2 passes per account) = ~74.9+76.0+76.6 = 227.5s, buried in tool_calls_s. True LLM time = 43.1 + 227.5 = 270.6s = 76.2% of wall."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": null,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — SAA outputs JSON to stdout only. Results also saved to /data/.pikabot/social-account-analyzer/ in container."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 89,
+    "output_tokens": 2652,
+    "cache_read_tokens": 26675,
+    "cache_write_tokens": 23114,
+    "total_tokens": 52530
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.1347
+  },
+
+  "totals": {
+    "tool_calls_s": 312.2,
+    "llm_overhead_s": 43.1,
+    "wall_total_s": 355.267,
+    "llm_pct": 12.1,
+    "skill_pct": 87.9,
+    "true_llm_overhead_s": 270.6,
+    "true_llm_pct": 76.2,
+    "true_llm_note": "llm_overhead_s captures orchestration LLM only (43.1s). true_llm_overhead_s adds in-script LLM (2-pass Pika proxy calls: 74.9+76.0+76.6=227.5s). Use true_llm_pct for cross-skill comparison."
+  }
+}

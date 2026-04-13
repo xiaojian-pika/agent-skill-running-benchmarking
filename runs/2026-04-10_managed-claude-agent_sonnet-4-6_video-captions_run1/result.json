@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Warm run — fresh session with whisper model pre-cached in environment. No pre-install time counted. Agent used nohup+poll pattern as instructed. ffmpeg stderr redirected to file. Clean execution, no timeouts or crashes.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style short vlog, English speech, vertical format",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+
+  "task": {
+    "name": "video-captions",
+    "version": "latest (skill_01AtvS9A6TCwagESmQwXRLLC)",
+    "purpose": "Add TikTok-style captions to 67.8s English vlog video",
+    "expected_output": "Captioned mp4 with tiktok-style word highlights"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Skills pre-loaded into container. Whisper model pre-cached in environment. No install time counted (fair comparison with other platforms)."
+    },
+    "asset_acquisition": {
+      "download_s": 3.1,
+      "llm_overhead_s": 6.2,
+      "total_s": 9.3,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Downloaded 4.7MB in ~1.4s actual transfer. Tool overhead includes env setup. Agent also read SKILL.md (3.6s) before download."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 21.5,
+      "steps": [
+        {
+          "name": "read_skill_md",
+          "duration_s": 3.6,
+          "notes": "Agent read SKILL.md to understand workflow"
+        },
+        {
+          "name": "nohup_background_start",
+          "duration_s": 0.8,
+          "notes": "Started caption script in background via nohup"
+        },
+        {
+          "name": "poll_completion",
+          "duration_s": 20.7,
+          "notes": "Polled with sleep 10 loop. Actual caption script completed in 23.2s (reported 23195ms). Transcribed 139 words, English auto-detected."
+        }
+      ],
+      "llm_overhead_s": 2.9,
+      "total_s": 24.4,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Full pipeline (extract audio + whisper transcribe + ASS generate + ffmpeg burn) completed in 23.2s. ffmpeg stderr redirected to file — no context bloat."
+    },
+    "delivery": {
+      "upload_s": 3.6,
+      "output_size_kb": 30904,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/02ef492c-c3e1-463e-b129-f62e85db5bbc/captioned.mp4",
+      "llm_overhead_s": 16.0,
+      "total_s": 19.6,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload via nova3_common.cdn.upload_to_cdn in 2.9s actual. LLM overhead includes analyzing caption output + composing final summary."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 91,
+    "output_tokens": 1652,
+    "cache_read_tokens": 55539,
+    "cache_write_tokens": 5957,
+    "total_tokens": 63239
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.064
+  },
+
+  "totals": {
+    "tool_calls_s": 31.751,
+    "llm_overhead_s": 39.344,
+    "wall_total_s": 71.095,
+    "llm_pct": 55.3,
+    "skill_pct": 44.7
+  }
+}

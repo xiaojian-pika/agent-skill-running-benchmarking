@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "T1+T2 in session 1 (single bash call, 15:01:56–15:09:58 UTC); T3+T4 initially failed (dc_solutions 403 → scraper_one AV1 no audio), rerun in session 2 (single bash call, 15:21:09–15:34:12 UTC). T3/T4 rerun succeeded: dc_solutions delivered h264 on second attempt. tool_calls_s = T1+T2+T3_rerun+T4_rerun (failed T3/T4 attempts excluded). Sub-stage timings: s1_apify/s1_download/s2_whisper/s3_llm confirmed from --dev stderr markers; s1_face_s and s4s5s6_per_clip_avg_s derived from totals. AV1 hw decode unavailable on devbox — h264 mmco warnings non-critical. Token delta covers both session windows (CC orchestration overhead only; skill S3 LLM calls via Anthropic proxy not in CC JSONL). T4 clips_requested=5, clips_returned=4 (LLM found 4 viable segments; pikabot found 3 on same video — model non-determinism).",
+    "test_input": {
+      "name": "matt-cutts-30days",
+      "description": "Matt Cutts — Try Something New for 30 Days (TED Talk, 3m27s)",
+      "resolution": "720p",
+      "duration_s": 207,
+      "codec": "H264",
+      "size_kb": 8192,
+      "url": "https://www.youtube.com/watch?v=UNP03fDSj1U"
+    }
+  },
+  "task": {
+    "name": "long-to-short-video",
+    "version": "f4f6db0",
+    "purpose": "Download YouTube video, select best clips via LLM, reframe 9:16, burn captions, upload to CDN",
+    "expected_output": "3-5 short MP4 clips (9:16) with virality scores and CDN URLs"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/Pikabot/nova3-agent-skills/long-to-short-video/. Pre-flight: ffmpeg 7.0.2, yt-dlp 2026.03.17, cv2 4.13.0.92, faster-whisper 1.2.1 installed."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A — download is internal to S1 skill stage (Apify), not a separate phase."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1124.325,
+      "steps": [
+        {
+          "name": "t1_fresh_3clips_tiktok",
+          "duration_s": 340.709,
+          "notes": "exit=0 success=true clips=3. s1_apify_s=50 (dc_solutions SUCCEEDED) s1_download_s=2 (8MB h264) s1_face_s=~20 (207s h264, OpenCV; derived) s2_whisper_s=10 s3_llm_s=11 s4s5s6_per_clip_avg_s=~83 (derived: (340.7-50-2-20-10-11)/3) s7_upload_s=~5_per_clip. virality=[8.7,7.8,5.0]. clip3 virality=5.0 gap-fill fallback. cdn_clip1=https://msaocnoosm1a4.pika.art/v2/files/agent/a238b90f-ef7b-4c61-9bda-76848f364146/clip_01_final.mp4 cdn_clip2=https://msaocnoosm1a4.pika.art/v2/files/agent/f147153d-be81-4b93-89fb-61ff17b0eb2f/clip_02_final.mp4 cdn_clip3=https://msaocnoosm1a4.pika.art/v2/files/agent/7a8e59af-538e-47da-85a0-023aaf53c262/clip_03_final.mp4"
+        },
+        {
+          "name": "t2_cache_hit",
+          "duration_s": 0.196,
+          "notes": "exit=0 success=true clips=3. cache_status=hit. S1 video cache hit, face timeline from cache (104 samples), transcript from cache (482 words), 3 clips from cache (LLM skipped), all checkpoints hit (S4-S7 skipped). virality=[8.7,7.8,5.0] (same as T1). No CDN re-upload."
+        },
+        {
+          "name": "t3_fresh_3clips_hormozi",
+          "duration_s": 371.103,
+          "notes": "exit=0 success=true clips=3 style=hormozi. s1_apify_s=50 (dc_solutions SUCCEEDED) s1_download_s=0 (8MB h264) s1_face_s=~20 (derived) s2_whisper_s=9 s3_llm_s=10 s4s5s6_per_clip_avg_s=~94 (derived: (371.1-50-0-20-9-10)/3). virality=[8.7,7.2,5.0]. clip1 end snapped 151.0→150.2s (longer than T1 tiktok due to hormozi style clip boundary). cdn_clip1=https://msaocnoosm1a4.pika.art/v2/files/agent/151dec10-74ca-4ff5-b2ca-767466d5a604/clip_01_final.mp4 cdn_clip2=https://msaocnoosm1a4.pika.art/v2/files/agent/088e66a6-04f8-4e67-9827-e880051cbdb4/clip_02_final.mp4 cdn_clip3=https://msaocnoosm1a4.pika.art/v2/files/agent/7e2984d3-3ba0-48bf-8322-b0d4ee51e72c/clip_03_final.mp4"
+        },
+        {
+          "name": "t4_fresh_5clips_tiktok",
+          "duration_s": 412.317,
+          "notes": "exit=0 success=true clips_requested=5 clips_returned=4 style=tiktok. s1_apify_s=36 (dc_solutions SUCCEEDED) s1_download_s=0 (8MB h264) s1_face_s=~20 (derived) s2_whisper_s=11 s3_llm_s=15 s4s5s6_per_clip_avg_s=~83 (derived: (412.3-36-0-20-11-15)/4). virality=[8.7,7.6,5.0,5.0]. clips 3+4 are gap-fill fallbacks (5.0). LLM returned 4 viable segments; pikabot returned 3 on same video — model non-determinism. cdn_clip1=https://msaocnoosm1a4.pika.art/v2/files/agent/b5a3f2e6-6702-47d2-a408-5a3a09640d49/clip_01_final.mp4 cdn_clip2=https://msaocnoosm1a4.pika.art/v2/files/agent/e3d8ae48-4bbe-454a-b059-85314bf1c12c/clip_02_final.mp4 cdn_clip3=https://msaocnoosm1a4.pika.art/v2/files/agent/b7e86138-fab8-45e8-8d3f-c61e351185ef/clip_03_final.mp4 cdn_clip4=https://msaocnoosm1a4.pika.art/v2/files/agent/84941f2b-3cdb-4aa1-8ebc-a2749892deff/clip_04_final.mp4"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1124.325,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = T1+T2+T3+T4 (340.709+0.196+371.103+412.317). T3 and T4 first attempts failed (dc_solutions 403 + scraper_one AV1; ~142s wasted, excluded from total). T4 dominated (412.3s): 4 clips × ~83s/clip = ~332s S4-S7. T3 per-clip slightly slower (~94s) vs T1/T4 (~83s) — likely face trajectory variance (T3 clip1 is longer: 59s vs 45s). T2 cache hit 0.196s confirms f4f6db0 caching works. Apify S1 timing: T1=50s, T3=50s, T4=36s (consistent with pikabot 36-52s range)."
+    },
+    "delivery": {
+      "upload_s": 50.0,
+      "output_size_kb": 39000,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/a238b90f-ef7b-4c61-9bda-76848f364146/clip_01_final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 50.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "10 clips uploaded across T1(3)+T3(3)+T4(4). T2 cache hit, no re-upload. upload_s ~50s estimated (10 clips × ~5s/clip). output_size_kb ~39MB estimated (10 clips × ~3.9MB/clip). output_url = T1 clip 1 CDN URL."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 1124.325,
+    "llm_overhead_s": 0.03,
+    "wall_total_s": 1124.355,
+    "llm_pct": 0.003,
+    "skill_pct": 99.997
+  }
+}

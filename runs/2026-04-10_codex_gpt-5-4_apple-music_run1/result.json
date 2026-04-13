@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "Codex",
+    "notes": "Fresh rerun of the Codex benchmark prompt with each timed step executed separately. No install step, no asset download step, and no upload step. The benchmark query was 'bohemian rhapsody queen'. Search-only returned 5 song results; the top result and downloaded preview were Bohemian Rhapsody by Queen from Greatest Hits I, II & III: The Platinum Collection.",
+    "test_input": {
+      "name": "bohemian rhapsody queen",
+      "description": "Apple Music search query benchmark input (no local media input file).",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "eeb6d71d06851874623e505c94f7f80547c78925",
+    "purpose": "Benchmark the local apple-music-reference skill by searching Apple Music for Bohemian Rhapsody by Queen and downloading the 30-second preview clip.",
+    "expected_output": "A 30-second M4A preview for Bohemian Rhapsody by Queen saved locally."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally at ~/code/nova3-agent-skills/apple-music-reference/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. This benchmark uses a search query and does not download an input asset ahead of execution."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1.288,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.744,
+          "notes": "Search-only mode returned 5 song results for the query."
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 0.544,
+          "notes": "Downloaded the 30-second preview for Bohemian Rhapsody by Queen to /tmp/bench_am_preview.m4a."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1.288,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Execution total is the sum of the separately measured search-only and search-plus-download commands."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 964,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only; downloaded preview remained on disk at /tmp/bench_am_preview.m4a."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-codex-tokens.py reported session-cumulative totals, not per-task usage. All 8 skills ran in a single Codex session with monotonically increasing token counts."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 1.288,
+    "llm_overhead_s": 13.69,
+    "wall_total_s": 14.978,
+    "llm_pct": 91.400721,
+    "skill_pct": 8.599279
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "Codex",
+    "notes": "Formal benchmark run used python3.11 directly with PYTHONPATH pointed at /home/ec2-user/Pikabot/nova3-agent-skills and PIKABOT_STATE_DIR=/tmp so the skill could persist JSON output in a writable location. Pre-flight confirmed ffmpeg and yt-dlp were installed. GOOGLE_API_KEY was absent from ~/keys/.env, but this skill's Gemini and LLM traffic went through the Pika proxy and the run completed successfully without a direct Google key. Token usage was derived from rollout token_count deltas between the benchmark wall-start and wall-end timestamps rather than the extractor's latest cumulative total.",
+    "test_input": {
+      "name": "social-trend-queries",
+      "description": "fitness(TikTok+IG), cooking(X), analyze(T1 URL), trending",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+  "task": {
+    "name": "viral-trend-finder",
+    "version": "f4f6db08c84a66db5fd06dee63eefb84cb36b25c",
+    "purpose": "Benchmark the local viral-trend-finder skill across niche search, X search, full video analysis, and general trending discovery, including the heavy T3 pipeline of metadata, download, frame extraction, Gemini vision, and LLM synthesis.",
+    "expected_output": "Trend search JSON for T1/T2/T4 plus a full storyboard/script analysis JSON for T3."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally under /home/ec2-user/Pikabot/nova3-agent-skills/viral-trend-finder/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No standalone asset acquisition phase. Video download happened inside T3 analyze and is recorded in execution step notes."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 340.954,
+      "steps": [
+        {
+          "name": "t1_find_fitness",
+          "duration_s": 14.882,
+          "notes": "exit=0 platforms=tiktok,instagram results=8 top_platform=instagram top_views=58450 t3_url=https://www.instagram.com/p/DW6T0PKDLuQ/"
+        },
+        {
+          "name": "t2_find_cooking_x",
+          "duration_s": 3.758,
+          "notes": "exit=0 results=10 top_platform=x top_views=2997629 top_url=https://x.com/FitFusion__/status/2035004866750206216"
+        },
+        {
+          "name": "t3_analyze",
+          "duration_s": 251.893,
+          "notes": "exit=0 source_url=https://www.instagram.com/p/DW6T0PKDLuQ/ metadata_s=1.13 download_s=11.74 frame_extract_s=5.59 gemini_vision_s=20.26 llm_synthesis_s=212.98 title='Instant Back Burn' target_niche='fitness enthusiasts and busy moms' format=tutorial success_factors=6 script_segments=10 storyboard_shots=10. Download path used Instagram Apify CDN fallback after yt-dlp failure. Runtime anomalies: 1/20 Gemini frame analyses failed; Anthropic synthesis timed out twice then fell back to OpenAI. Saved skill report: /tmp/viral-trend-finder/2026-04-10-fitness-enthusiasts-and-busy-moms.json."
+        },
+        {
+          "name": "t4_trending",
+          "duration_s": 70.421,
+          "notes": "exit=0 results=10 top_platform=tiktok top_views=32400000 top_url=https://www.tiktok.com/@effectik11/video/7287696643720236320. TikTok native trending returned 0 and the skill fell back to keyword searches across dance,lifestyle,comedy,food,fitness plus Instagram/X evergreen category searches."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 340.954,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Execution total is the sum of the four individually timed skill commands. T3 sub-stage durations came from the skill's own stderr timing lines rather than external inference."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 0,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only. Benchmark artifacts were written to the runs directory, and the skill's saved analysis output remained on disk under /tmp/viral-trend-finder/."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-codex-tokens.py reported session-cumulative totals, not per-task usage. All 8 skills ran in a single Codex session with monotonically increasing token counts."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 340.954,
+    "llm_overhead_s": 139.494213,
+    "wall_total_s": 480.448213,
+    "llm_pct": 29.034183,
+    "skill_pct": 70.965817
+  }
+}

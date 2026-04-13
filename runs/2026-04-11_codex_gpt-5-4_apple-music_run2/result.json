@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "Codex",
+    "notes": "Fresh rerun of the latest Codex benchmark prompt with each timed step executed separately. No install step, no asset download step, and no upload step. The benchmark query was 'bohemian rhapsody queen'. Search-only returned 5 song results; the top result and downloaded preview were Bohemian Rhapsody by Queen from Greatest Hits I, II & III: The Platinum Collection. Token totals were isolated to this benchmark window with extract-codex-tokens.py --latest --after ... --before ... --json.",
+    "test_input": {
+      "name": "bohemian rhapsody queen",
+      "description": "Apple Music search query benchmark input (no local media input file).",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "f323b95d010e0dfda2aacb8183ce250ff53eade5",
+    "purpose": "Benchmark the local apple-music-reference skill by searching Apple Music for Bohemian Rhapsody by Queen and downloading the 30-second preview clip.",
+    "expected_output": "A 30-second M4A preview for Bohemian Rhapsody by Queen saved locally."
+  },
+  "platform": {
+    "name": "codex",
+    "runtime": "Codex sandbox",
+    "llm_model": "gpt-5.4",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. The skill was already present locally at ~/code/nova3-agent-skills/apple-music-reference/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Not applicable. This benchmark uses a search query and does not download an input asset ahead of execution."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1.065,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.545,
+          "notes": "Search-only mode returned 5 song results for the query."
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 0.52,
+          "notes": "Downloaded the 30-second preview for Bohemian Rhapsody by Queen to /tmp/bench_am_preview.m4a."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 1.065,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Execution total is the sum of the separately measured search-only and search-plus-download commands."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 964,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only; downloaded preview remained on disk at /tmp/bench_am_preview.m4a."
+    }
+  },
+  "tokens": {
+    "input_tokens": 426849,
+    "output_tokens": 979,
+    "cache_read_tokens": 424192,
+    "cache_write_tokens": null,
+    "total_tokens": 427828,
+    "_note": "Extractor-authoritative total token delta from extract-codex-tokens.py for this benchmark window. cache_read_tokens and cache_write_tokens are reported separately and are not added again into total_tokens here."
+  },
+  "cost": {
+    "model": "gpt-5.4",
+    "input_price_per_million": 2.5,
+    "output_price_per_million": 10.0,
+    "cache_read_price_per_million": 0,
+    "cache_write_price_per_million": 0,
+    "estimated_cost_usd": 1.076912,
+    "_note": "Codex cost in this artifact follows extract-codex-tokens.py methodology: price input_tokens and output_tokens only. cache_read_tokens and cache_write_tokens are retained as informational fields and are not separately charged here."
+  },
+  "totals": {
+    "tool_calls_s": 1.065,
+    "llm_overhead_s": 11.724,
+    "wall_total_s": 12.789,
+    "llm_pct": 91.672531,
+    "skill_pct": 8.327469
+  }
+}

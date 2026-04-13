@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "First claudecode run with claude-sonnet-4-6. Whisper model already cached. Faster download (91ms) suggests S3 CDN cache warm.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style daily vlog, English speech",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-captions",
+    "version": "b2f439d",
+    "purpose": "Add TikTok-style word-highlight captions to a 67.8s English vlog video using faster-whisper (small, CPU)",
+    "expected_output": "Captioned mp4 with tiktok-style word highlights burned in"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/video-captions/"
+    },
+    "asset_acquisition": {
+      "download_s": 0.091,
+      "llm_overhead_s": null,
+      "total_s": 0.091,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3 us-east-1 to devbox; 91ms, likely CDN cache warm"
+    },
+    "execution": {
+      "probe_s": 0.01,
+      "skill_run_s": 32.048,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 0.394,
+          "notes": "Standalone ffmpeg -vn -ar 16000 -ac 1 -f mp3; also runs internally within caption script"
+        },
+        {
+          "name": "transcribe_faster_whisper",
+          "duration_s": 21.334,
+          "notes": "Standalone faster-whisper small CPU int8; 138 words, language=en; model cached from prior run"
+        },
+        {
+          "name": "caption_script_full",
+          "duration_s": 32.048,
+          "notes": "Full caption_video.py --style tiktok; includes audio extraction + transcription + ass generation + ffmpeg burn"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 53.786,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = probe + extract_audio + transcribe + caption_script_full (0.010+0.394+21.334+32.048). Output: 30720 KB."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 30720,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 53.877,
+    "llm_overhead_s": 23.081,
+    "wall_total_s": 76.958,
+    "llm_pct": 30.0,
+    "skill_pct": 70.0
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Warm run — fresh session on pika-media-env. Agent used nohup+poll pattern. Translation pipeline: extract audio → Whisper transcribe → GPT-4o translate → ElevenLabs voice clone + TTS → ffmpeg audio replace. SKILL.md read returned error but agent proceeded correctly.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style short vlog, English speech, vertical format",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+
+  "task": {
+    "name": "video-translation",
+    "version": "latest (skill_01QeCE8TxFvwoTZy7e6FuXAz)",
+    "purpose": "Translate 67.8s English vlog to Spanish, no lip sync",
+    "expected_output": "Spanish-dubbed mp4 with cloned speaker voice"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Skills pre-loaded. Dependencies pre-installed in environment. No install time counted."
+    },
+    "asset_acquisition": {
+      "download_s": 3.1,
+      "llm_overhead_s": 5.4,
+      "total_s": 8.5,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Downloaded 4.7MB in ~1.3s actual. Agent also read SKILL.md (11.1s, returned error but had content)."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 54.367,
+      "steps": [
+        {
+          "name": "nohup_background_start",
+          "duration_s": 0.7,
+          "notes": "Started translate_video.py in background via nohup"
+        },
+        {
+          "name": "poll_completion",
+          "duration_s": 50.7,
+          "notes": "Polled with sleep 10 loop. Script reported 54367ms total. Pipeline: extract audio → Whisper → GPT-4o → ElevenLabs clone + TTS → ffmpeg replace."
+        }
+      ],
+      "llm_overhead_s": 12.8,
+      "total_s": 64.2,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Full translation pipeline completed in 54.4s. API-bound: Whisper, GPT-4o, ElevenLabs (clone + TTS) are all network calls. ffmpeg stderr redirected."
+    },
+    "delivery": {
+      "upload_s": 2.5,
+      "output_size_kb": 4343,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/4041ddf5-1334-4bd9-98dc-7ee5d65d0d0f/translated.mp4",
+      "llm_overhead_s": 9.3,
+      "total_s": 11.8,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload in 1.7s actual. Output smaller than input (4.3MB vs 4.9MB) due to TTS audio bitrate."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 91,
+    "output_tokens": 1655,
+    "cache_read_tokens": 42760,
+    "cache_write_tokens": 5878,
+    "total_tokens": 50384
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.060
+  },
+
+  "totals": {
+    "tool_calls_s": 68.070,
+    "llm_overhead_s": 30.367,
+    "wall_total_s": 98.437,
+    "llm_pct": 30.8,
+    "skill_pct": 69.2
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Fresh session on pika-vtf-env (env_01F5tAehAXCYskw2ixGkM9KG). VTF skill installed by environment init_script from Pika hub v1.0.6. T1 first attempt failed (race condition: init_script still writing VTF files when T1 ran); T1 re-run at t=127s succeeded. T1+T2+T4 dispatched in parallel (same timestamp 14:04:19Z); container ran sequentially (T1_fail→T4→T2 order inferred from script-level ms). T3 nohup+poll pattern (265.9s, 19 polls×15s). T3 URL: Instagram Reel from T1 results. yt-dlp failed on Instagram, fell back to Apify CDN (38MB). 165 frames, 19 Gemini batches, 1/19 failed. Session: sesn_011CZvDUmT73191dPWN2K1Mf.",
+    "test_input": {
+      "name": "social-trend-queries",
+      "description": "fitness(TikTok+IG), cooking(X), analyze(T1 URL=IG Reel), trending",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+
+  "task": {
+    "name": "viral-trend-finder",
+    "version": "1.0.6 (Pika hub, eeb6d71 via CI)",
+    "purpose": "Discover trending content on TikTok+Instagram (T1), X/Twitter (T2), analyze Instagram Reel full pipeline (T3), get cross-platform trending (T4)",
+    "expected_output": "JSON results per find/trending test; storyboard + hook copy for analyze test"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "VTF skill installed by pika-vtf-env init_script from Pika hub at container startup. init_script runs concurrently with first session; T1 first attempt caught a race condition. No separate install phase — handled transparently by environment."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No video pre-download. T3 analyze downloads video internally as part of skill execution."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 393.9,
+      "steps": [
+        {
+          "name": "t1_find_fitness",
+          "duration_s": 20.174,
+          "notes": "script_ms=20174. platforms=tiktok,instagram. results=11 (6 TikTok + 5 Instagram). T3_url captured: https://www.instagram.com/p/DW7PS8PAb4W/. NOTE: T1 first attempt (same parallel batch as T2/T4) failed with exit=2 'No such file or directory' — init_script race condition. Re-run at t=127.3s succeeded."
+        },
+        {
+          "name": "t2_find_cooking_x",
+          "duration_s": 5.487,
+          "notes": "script_ms=5487. platform=x. results=10. Fastest find test — single-platform X/Twitter search via RapidAPI."
+        },
+        {
+          "name": "t3_analyze",
+          "duration_s": 265.908,
+          "notes": "script_ms=265908. url=https://www.instagram.com/p/DW7PS8PAb4W/ (Instagram Reel from T1). nohup+poll pattern, done at poll 19 (~285s wall from launch). Full pipeline: metadata_s=~5 download_s=~30 (yt-dlp failed, Apify CDN fallback, 38216KB) frame_extract_s=~3 (165 frames@1fps) gemini_vision_s=~162 (19 parallel batches, last done at t=162s) llm_synthesis_s=~66. shots=9 frames_analyzed=165. 1/19 Gemini batches failed, 18/19 succeeded."
+        },
+        {
+          "name": "t4_trending",
+          "duration_s": 82.387,
+          "notes": "script_ms=82387. results=10. Searched 5 categories (dance/lifestyle/comedy/food/fitness) × 3 platforms (TikTok native→fallback keyword, Instagram, X). TikTok native trending returned 0, fell back to keyword. 2 long videos auto-skipped (195s, 347s)."
+        }
+      ],
+      "llm_overhead_s": 59.0,
+      "total_s": 447.441,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "T1+T2+T4 dispatched simultaneously at t=17.7s; container ran sequentially (T1_fail in 0.066s → T4 in 82.4s → T2 in 5.5s, all results at t=110.2-110.4s). T1 re-run dispatched at t=127.3s (after workspace check confirmed VTF installed). T3 nohup+poll: launched at t=157.2s, polled from t=163.7s, done at t=435.3s. tool_calls_s uses parallel-adjusted wall time for the T1+T2+T4 batch (92.7s block, not sum 0.066+5.487+82.387=87.9s)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": null,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — VTF outputs JSON to stdout only."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 8,
+    "output_tokens": 4149,
+    "cache_read_tokens": 65154,
+    "cache_write_tokens": 10027,
+    "total_tokens": 79338
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.1194
+  },
+
+  "totals": {
+    "tool_calls_s": 388.4,
+    "llm_overhead_s": 59.0,
+    "wall_total_s": 447.441,
+    "llm_pct": 13.2,
+    "skill_pct": 86.8
+  }
+}

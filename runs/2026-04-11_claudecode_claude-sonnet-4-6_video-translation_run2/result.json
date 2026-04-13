@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "Sub-step timings extracted from skill log timestamps. Whisper API used via staging proxy (key ak_zBO3WUAGn...). TTS step (33.7s) longer than run1 (16.4s) — ElevenLabs API latency variance. Voice clone ID O6XnzlBgXWCWT2XIiH9I auto-deleted after use.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style daily vlog, English speech",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "f323b95",
+    "purpose": "Translate English vlog to Spanish with cloned speaker voice, no lip sync",
+    "expected_output": "Spanish-dubbed mp4 with cloned speaker voice (no lip sync)"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/video-translation/"
+    },
+    "asset_acquisition": {
+      "download_s": 0.229,
+      "llm_overhead_s": null,
+      "total_s": 0.229,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3 us-east-1 to devbox"
+    },
+    "execution": {
+      "probe_s": 0.008,
+      "skill_run_s": 54.083,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 1.1,
+          "notes": "From skill log [0.0s→1.1s]: ffmpeg audio extraction"
+        },
+        {
+          "name": "whisper_transcribe",
+          "duration_s": 4.2,
+          "notes": "From skill log [1.1s→5.3s]: Whisper API via staging proxy; 690 chars transcribed"
+        },
+        {
+          "name": "translate_gpt4o",
+          "duration_s": 4.0,
+          "notes": "From skill log [5.3s→9.3s]: GPT-4o translation en→es; 720 chars output"
+        },
+        {
+          "name": "voice_clone_elevenlabs",
+          "duration_s": 4.5,
+          "notes": "From skill log [9.3s→13.8s]: ElevenLabs voice clone from audio; voice ID O6XnzlBgXWCWT2XIiH9I (auto-deleted after)"
+        },
+        {
+          "name": "tts_eleven_v3",
+          "duration_s": 33.7,
+          "notes": "From skill log [13.8s→47.5s]: ElevenLabs eleven_v3 TTS; 662.5 KB audio generated. Longer than run1 (16.4s) — ElevenLabs API latency variance."
+        },
+        {
+          "name": "replace_audio_ffmpeg",
+          "duration_s": 6.583,
+          "notes": "From skill log [47.5s→54.083s]: ffmpeg audio replace; output 48s video"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 54.091,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = probe + skill_run (0.008 + 54.083). Sub-step sum: 1.1+4.2+4.0+4.5+33.7+6.583=54.083s"
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 3272,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": 8,
+    "output_tokens": 1732,
+    "cache_read_tokens": 1075295,
+    "cache_write_tokens": 2097,
+    "effective_input_tokens": 1077400,
+    "total_tokens": 1079132,
+    "_note": "Extracted with --after 2026-04-11T17:17:22Z --before 2026-04-11T17:18:35Z (WALL_START to WALL_END, 8 messages)."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.3565
+  },
+  "totals": {
+    "tool_calls_s": 54.320,
+    "llm_overhead_s": 18.505,
+    "wall_total_s": 72.825,
+    "llm_pct": 25.4,
+    "skill_pct": 74.6
+  }
+}

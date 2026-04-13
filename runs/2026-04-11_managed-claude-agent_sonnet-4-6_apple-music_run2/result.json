@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "mingzhi",
+    "notes": "Run2 re-run (retry). DNS resolution error on initial attempts, agent debugged and monkey-patched httpx to work around. Actual skill work ~4.6s, LLM overhead 75%.",
+    "test_input": {
+      "name": "bohemian rhapsody queen",
+      "description": "Apple Music search query",
+      "resolution": "", "duration_s": null, "codec": "", "size_kb": null, "url": ""
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "latest (skill_01BL8MV6Jh5na2qDzizrqN7u, v1775907227002610)",
+    "purpose": "Search Apple Music and download 30s preview of Bohemian Rhapsody",
+    "expected_output": "30-second M4A preview"
+  },
+  "platform": {
+    "name": "managed-claude-agent", "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6", "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {"cms_fetch_s": null, "skill_install_s": null, "subagent_start_s": null, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "Skills pre-loaded."},
+    "asset_acquisition": {"download_s": null, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "No video download — search+preview skill."},
+    "execution": {
+      "probe_s": null, "skill_run_s": 4.554,
+      "steps": [
+        {"name": "read_skill_md", "duration_s": 10.7, "notes": "Agent read SKILL.md"},
+        {"name": "search_and_download_preview", "duration_s": 3.4, "notes": "search_and_download_ms=2460, 962KB M4A. Required DNS debugging first."},
+        {"name": "dns_debugging", "duration_s": 14.5, "notes": "Agent read script source, checked httpx version, monkey-patched transport to fix DNS"}
+      ],
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "DNS error required debugging. Actual skill execution ~4.6s. Agent monkey-patched httpx to work around DNS resolution failure."
+    },
+    "delivery": {
+      "upload_s": 3.0, "output_size_kb": 962,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/51bf0531-4187-446b-9f9a-40a7902f2c32/preview.m4a",
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload 2.1s actual. 962KB M4A."
+    }
+  },
+  "tokens": {"input_tokens": 102, "output_tokens": 5252, "cache_read_tokens": 235276, "cache_write_tokens": 14210, "total_tokens": 254840},
+  "cost": {"model": "Claude Sonnet 4.6", "input_price_per_million": 3, "output_price_per_million": 15, "cache_read_price_per_million": 0.30, "cache_write_price_per_million": 3.75, "estimated_cost_usd": 0.203},
+  "totals": {"tool_calls_s": 35.113, "llm_overhead_s": 103.499, "wall_total_s": 138.612, "llm_pct": 74.7, "skill_pct": 25.3}
+}

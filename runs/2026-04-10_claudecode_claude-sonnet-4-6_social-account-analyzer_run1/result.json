@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "T1/T2/T3 executed in a single continuous bash call — WALL_START and WALL_END captured in the same shell, no CC activity between runs. LLM JSON truncation triggered on all 3 runs (auto-repaired). Token delta extracted from session JSONL with 60s pre-window buffer; covers 3 CC messages (pre-run decision, post-run result read, parse).",
+    "test_input": {
+      "name": "social-handles",
+      "description": "@natgeo (Instagram), @NASA (X/Twitter), @khaby.lame (TikTok)",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "social-account-analyzer",
+    "version": "eeb6d71",
+    "purpose": "Analyze 3 public social media accounts across Instagram, X/Twitter, and TikTok — fetch profile + posts, compute engagement metrics, run two-pass LLM analysis, return growth recommendations",
+    "expected_output": "JSON with profile summary, performance metrics, content analysis, top posts, growth opportunities, recommendations, and 2-week content calendar per account"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/Pikabot/nova3-agent-skills/social-account-analyzer/."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No asset download — pure API + LLM skill."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 379.852,
+      "steps": [
+        {
+          "name": "t1_instagram_fetch",
+          "duration_s": 42.9,
+          "notes": "@natgeo Instagram public. Apify instagram-profile-scraper + instagram-post-scraper in parallel."
+        },
+        {
+          "name": "t1_instagram_llm",
+          "duration_s": 83.7,
+          "notes": "pass1 (2800 max_tokens) + pass2 (2000 max_tokens) via Anthropic proxy. LLM JSON truncated → auto-repaired. Result: 274.96M followers, 0.03% ER, Carousel best type, stable trend."
+        },
+        {
+          "name": "t2_x_fetch",
+          "duration_s": 5.8,
+          "notes": "@NASA X/Twitter public. RapidAPI twitter241 /user + /search-v2."
+        },
+        {
+          "name": "t2_x_llm",
+          "duration_s": 158.7,
+          "notes": "pass1 + pass2 via Anthropic proxy. LLM JSON truncated → auto-repaired. Proxy latency spike observed. Result: 90.94M followers, 0.03% ER, Video best type, growing trend."
+        },
+        {
+          "name": "t3_tiktok_fetch",
+          "duration_s": 17.8,
+          "notes": "@khaby.lame TikTok public. Apify clockworks~free-tiktok-scraper."
+        },
+        {
+          "name": "t3_tiktok_llm",
+          "duration_s": 70.5,
+          "notes": "pass1 + pass2 via Anthropic proxy. LLM JSON truncated → auto-repaired. Result: 160.6M followers, 0.9% ER, Video best type, declining trend."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 379.852,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = t1 + t2 + t3 (126.707 + 164.665 + 88.480). All 3 runs triggered LLM JSON truncation + auto-repair. T2 llm slow (158.7s) — Anthropic proxy latency spike."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 36,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — local delivery only. 3 JSON reports: natgeo 13KB, NASA 12KB, khaby.lame 12KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 379.852,
+    "llm_overhead_s": 0.014,
+    "wall_total_s": 379.866,
+    "llm_pct": 0.004,
+    "skill_pct": 99.996
+  }
+}

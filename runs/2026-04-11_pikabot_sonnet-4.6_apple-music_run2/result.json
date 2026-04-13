@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "pikabot",
+    "notes": "v1.0.2 from CMS. rootPrefix='' but zip had apple-music-reference/ subfolder \u2014 manual flatten required (same pattern as music-beat-sync). No video input \u2014 search query only. Search returned 5 results; top pick: Bohemian Rhapsody by Queen (Greatest Hits I,II&III).",
+    "test_input": {
+      "name": "N/A",
+      "description": "Search query: 'bohemian rhapsody queen' \u2014 no video input for this skill",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "apple-music-reference",
+    "version": "1.0.2",
+    "purpose": "Search Apple Music for 'bohemian rhapsody queen' and download the 30-second preview as M4A",
+    "expected_output": "M4A audio file with 30-second preview + track metadata (name, artist, album, duration, URL)"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6 (anthropic/claude-sonnet-4-6)",
+    "system_prompt_tokens": 45097
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.111,
+      "skill_install_s": 0.135,
+      "subagent_start_s": 16.381,
+      "llm_overhead_s": 19.63,
+      "total_s": 36.26,
+      "tokens": {
+        "input_tokens": 5,
+        "output_tokens": 900
+      },
+      "notes": "CMS fetch 111ms. Zip only 8KB (smallest of all benchmarks). rootPrefix='' but nested subfolder again \u2014 manual flatten needed. Subagent boot 16.4s."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "N/A \u2014 no asset to download before execution. Preview download is part of the execution phase."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 0.553,
+      "steps": [
+        {
+          "name": "search_apple_music",
+          "duration_s": 0.438,
+          "notes": "iTunes Search API. Returned 5 results for 'bohemian rhapsody queen' in 438ms. All results include preview_url."
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 0.553,
+          "notes": "Search (re-run) + download top result preview. 30s M4A from audio-ssl.itunes.apple.com. 984317 bytes (961KB). Total 553ms including search."
+        }
+      ],
+      "llm_overhead_s": 22.9,
+      "total_s": 23.89,
+      "tokens": {
+        "input_tokens": 6,
+        "output_tokens": 1100
+      },
+      "notes": "Fastest execution of all 4 benchmarks. Pure API calls (iTunes Search + CDN download). No local compute. Search: 438ms, search+download: 553ms. No ffprobe needed."
+    },
+    "delivery": {
+      "upload_s": 13.939,
+      "output_size_kb": 961,
+      "output_url": "https://cdn.pika.art/v2/files/agent/95585d79-e3d8-40a9-9bb5-323956f5063e/bench-am-bohemian-rhapsody-preview.m4a",
+      "llm_overhead_s": 6.54,
+      "total_s": 20.48,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 600
+      },
+      "notes": "Output 961KB M4A (30s AAC preview). Upload ~70 KB/s (14s for 961KB) \u2014 slow relative to file size."
+    }
+  },
+  "tokens": {
+    "input_tokens": 16,
+    "output_tokens": 2746,
+    "cache_read_tokens": 1507618,
+    "cache_write_tokens": 415986,
+    "total_tokens": 1926366
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 2.053471,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75
+  },
+  "totals": {
+    "tool_calls_s": 31.56,
+    "llm_overhead_s": 65.43,
+    "wall_total_s": 96.98,
+    "llm_pct": 67.5,
+    "skill_pct": 32.5
+  }
+}

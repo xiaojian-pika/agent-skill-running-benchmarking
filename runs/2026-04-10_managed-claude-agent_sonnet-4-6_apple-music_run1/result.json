@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "mingzhi",
+    "notes": "Fresh session on pika-media-env. Agent hit DNS resolution error on first search attempt, spent significant LLM time debugging (reading script, testing curl, retrying). Actual skill execution was only ~4.8s but LLM overhead was 80%. 12 tool calls total due to debugging.",
+    "test_input": {
+      "name": "bohemian rhapsody queen",
+      "description": "Apple Music search query for Bohemian Rhapsody by Queen",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+
+  "task": {
+    "name": "apple-music-reference",
+    "version": "latest (skill_01BL8MV6Jh5na2qDzizrqN7u)",
+    "purpose": "Search Apple Music and download 30s preview of Bohemian Rhapsody",
+    "expected_output": "30-second M4A preview of Bohemian Rhapsody by Queen"
+  },
+
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Skills pre-loaded. Dependencies pre-installed in environment."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No video download — this is a search+preview skill."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 4.792,
+      "steps": [
+        {
+          "name": "read_skill_md",
+          "duration_s": 10.7,
+          "notes": "Agent read SKILL.md"
+        },
+        {
+          "name": "search_apple_music",
+          "duration_s": 3.0,
+          "notes": "First search attempt hit DNS error. Agent retried — successful search in 1150ms."
+        },
+        {
+          "name": "search_and_download_preview",
+          "duration_s": 1.4,
+          "notes": "Search + download 30s preview (962KB M4A) in 1940ms."
+        },
+        {
+          "name": "debug_dns_resolution",
+          "duration_s": 8.0,
+          "notes": "Agent read script source, tested curl connectivity, tried alternative approaches. DNS resolved on retry."
+        }
+      ],
+      "llm_overhead_s": 86.0,
+      "total_s": 114.6,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Actual skill execution ~4.8s. Agent spent most time debugging DNS error and reading script. 12 LLM calls due to error recovery."
+    },
+    "delivery": {
+      "upload_s": 2.4,
+      "output_size_kb": 962,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/f1abaf3a-68c6-492e-abf1-3b6febd8a6e1/preview.m4a",
+      "llm_overhead_s": 14.9,
+      "total_s": 17.3,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload in 1.7s actual. Preview is 962KB M4A, 30 seconds."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 97,
+    "output_tokens": 5622,
+    "cache_read_tokens": 145459,
+    "cache_write_tokens": 19066,
+    "total_tokens": 170244
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3,
+    "output_price_per_million": 15,
+    "estimated_cost_usd": 0.200
+  },
+
+  "totals": {
+    "tool_calls_s": 28.6,
+    "llm_overhead_s": 117.9,
+    "wall_total_s": 146.5,
+    "llm_pct": 80.5,
+    "skill_pct": 19.5
+  }
+}

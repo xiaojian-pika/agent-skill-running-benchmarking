@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "date": "YYYY-MM-DD",
+    "round": 1,
+    "tester": "",
+    "notes": "",
+    "test_input": {
+      "name": "",
+      "description": "",
+      "resolution": "",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+
+  "task": {
+    "name": "",
+    "version": "",
+    "purpose": "",
+    "expected_output": ""
+  },
+
+  "platform": {
+    "name": "",
+    "runtime": "",
+    "llm_model": "",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": ""
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": ""
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": null,
+      "steps": [
+        {
+          "name": "",
+          "duration_s": null,
+          "notes": ""
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": ""
+    },
+    "delivery": {
+      "upload_s": null,
+      "output_size_kb": null,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": ""
+    }
+  },
+
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null
+  },
+
+  "cost": {
+    "model": "",
+    "input_price_per_million": null,
+    "output_price_per_million": null,
+    "cache_read_price_per_million": null,
+    "cache_write_price_per_million": null,
+    "estimated_cost_usd": null
+  },
+
+  "totals": {
+    "tool_calls_s": null,
+    "llm_overhead_s": null,
+    "wall_total_s": null,
+    "llm_pct": null,
+    "skill_pct": null
+  }
+}

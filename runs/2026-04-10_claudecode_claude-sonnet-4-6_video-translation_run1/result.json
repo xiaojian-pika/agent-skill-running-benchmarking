@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "Sub-step timings extracted from skill log timestamps. PYTHONPATH required explicit /home/mingzhi path (tilde not expanding in env var). First attempt aborted (185ms) due to this; second attempt succeeded. Wall time includes both attempts.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style daily vlog, English speech",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "HEVC+AAC",
+      "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "b2f439d",
+    "purpose": "Translate English vlog to Spanish with cloned speaker voice, no lip sync",
+    "expected_output": "Spanish-dubbed mp4 with cloned speaker voice (no lip sync)"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/code/nova3-agent-skills/video-translation/"
+    },
+    "asset_acquisition": {
+      "download_s": 0.074,
+      "llm_overhead_s": null,
+      "total_s": 0.074,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3 us-east-1 to devbox"
+    },
+    "execution": {
+      "probe_s": 0.009,
+      "skill_run_s": 36.237,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 1.2,
+          "notes": "From skill log [0.0s→1.2s]: ffmpeg audio extraction"
+        },
+        {
+          "name": "whisper_transcribe",
+          "duration_s": 6.2,
+          "notes": "From skill log [1.2s→7.4s]: Whisper via proxy; 691 chars transcribed"
+        },
+        {
+          "name": "translate_gpt4o",
+          "duration_s": 3.9,
+          "notes": "From skill log [7.4s→11.3s]: GPT-4o translation en→es; 734 chars output"
+        },
+        {
+          "name": "voice_clone_elevenlabs",
+          "duration_s": 4.1,
+          "notes": "From skill log [11.3s→15.4s]: ElevenLabs voice clone from audio; voice ID nRCuzgUNNvOsfGEmxMHv (auto-deleted after)"
+        },
+        {
+          "name": "tts_eleven_v3",
+          "duration_s": 16.4,
+          "notes": "From skill log [15.4s→31.8s]: ElevenLabs eleven_v3 TTS; 699.6 KB audio generated"
+        },
+        {
+          "name": "replace_audio_ffmpeg",
+          "duration_s": 4.437,
+          "notes": "From skill log [31.8s→36.237s]: ffmpeg audio replace; output 32s video"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 36.32,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = probe + skill_run (0.009+36.237+0.074 download). Sub-step sum: 1.2+6.2+3.9+4.1+16.4+4.437=36.237s"
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 3368,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No upload — local delivery only (Claude Code benchmark)"
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 36.32,
+    "llm_overhead_s": 34.167,
+    "wall_total_s": 70.487,
+    "llm_pct": 48.5,
+    "skill_pct": 51.5
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "pikabot",
+    "notes": "v1.0.6 installed from CMS via direct API call. rootPrefix='' but zip contained music-beat-sync/ subfolder \u2014 manual flatten needed. hype vibe @ 120 BPM. Music generation (MiniMax) took 128.2s for 16.5s track. Short track issue observed (previous finding confirmed).",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli D'Amelio daily vlog, TikTok-style vertical short-form video",
+      "resolution": "720x1280",
+      "duration_s": 67.8,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-beat-sync",
+    "version": "1.0.6",
+    "purpose": "Add BPM-matched hype music to a 67.8s vertical video with beat-aligned scene cuts (sync mode)",
+    "expected_output": "MP4 with background hype music; scene cuts aligned to 120 BPM beats; original audio replaced"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6 (anthropic/claude-sonnet-4-6)",
+    "system_prompt_tokens": 45097
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.218,
+      "skill_install_s": 0.125,
+      "subagent_start_s": 14.287,
+      "llm_overhead_s": 24.6,
+      "total_s": 39.23,
+      "tokens": {
+        "input_tokens": 7,
+        "output_tokens": 1200
+      },
+      "notes": "CMS fetch: 218ms. Zip 31KB downloaded in 121ms, extracted in 4ms. rootPrefix='' but zip had music-beat-sync/ subfolder \u2014 required manual flatten (mv). v1.0.6: 691 lines. Subagent boot: 14.3s."
+    },
+    "asset_acquisition": {
+      "download_s": 0.155,
+      "llm_overhead_s": 7.87,
+      "total_s": 8.03,
+      "tokens": {
+        "input_tokens": 2,
+        "output_tokens": 200
+      },
+      "notes": "S3 download ~32.3 MB/s, 4.79MB in 155ms."
+    },
+    "execution": {
+      "probe_s": 0.081,
+      "skill_run_s": 191.743,
+      "steps": [
+        {
+          "name": "scene_detection",
+          "duration_s": 3.719,
+          "notes": "ffmpeg scene detection threshold 0.35 \u2014 detected 26 scene changes in 67.8s video"
+        },
+        {
+          "name": "music_generation_minimax",
+          "duration_s": 128.2,
+          "notes": "MiniMax API \u2014 hype @ 120 BPM trap hip-hop. Returned 16.5s track after 128.2s wait. Short track issue: 67.8s video / 16.5s track = 4.1x loop required. Consistent with prior benchmark findings."
+        },
+        {
+          "name": "beat_alignment",
+          "duration_s": null,
+          "notes": "136 beats @ 120 BPM (0.5s interval). 26 cuts aligned to beats. Speed adjustments 0.867x-1.133x. Mode: sync (auto-selected). Internal to script."
+        },
+        {
+          "name": "audio_mix",
+          "duration_s": null,
+          "notes": "Mode=replace \u2014 original audio replaced with music. Internal to script."
+        },
+        {
+          "name": "beat_sync_full",
+          "duration_s": 191.743,
+          "notes": "Full beat_sync.py wall time including all sub-steps. S1-S5 completed. Output 16.0 MB."
+        }
+      ],
+      "llm_overhead_s": 34.44,
+      "total_s": 229.99,
+      "tokens": {
+        "input_tokens": 8,
+        "output_tokens": 1800
+      },
+      "notes": "beat_sync.py ran in 191.7s. Music generation dominates: 128.2s = 66.8% of script time. Beat alignment + ffmpeg mix: ~63.5s remaining. Scene detection (standalone): 3.7s."
+    },
+    "delivery": {
+      "upload_s": 15.784,
+      "output_size_kb": 16388,
+      "output_url": "https://cdn.pika.art/v2/files/agent/426bf050-ea1f-4569-8a3a-938a6c23217a/bench-bs-charli-hype.mp4",
+      "llm_overhead_s": 9.84,
+      "total_s": 25.62,
+      "tokens": {
+        "input_tokens": 4,
+        "output_tokens": 700
+      },
+      "notes": "Output 16388KB (vs 4790KB input, 3.4x). Upload ~1.1 MB/s. Size increase from re-encode + audio replacement."
+    }
+  },
+  "tokens": {
+    "input_tokens": 23,
+    "output_tokens": 4127,
+    "cache_read_tokens": 2193965,
+    "cache_write_tokens": 93310,
+    "total_tokens": 2291425
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 1.070076,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75
+  },
+  "totals": {
+    "tool_calls_s": 226.11,
+    "llm_overhead_s": 98.41,
+    "wall_total_s": 324.52,
+    "llm_pct": 30.3,
+    "skill_pct": 69.7
+  }
+}

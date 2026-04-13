@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Clean test run (all bench files reset to round 1 before run). faster-whisper pre-installed from prior session. No subagent used \u2014 benchmark ran directly in main session. Output 6.4x larger than input due to hevc\u2192h264 re-encode.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli daily vlog, vertical 720p, 67.8s, H.265/HEVC",
+      "resolution": "720x1280",
+      "duration_s": 67.803,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-captions",
+    "version": "1.0.8",
+    "purpose": "Add TikTok-style word-highlight captions to a 67.8s vertical vlog (720p HEVC)",
+    "expected_output": "An MP4 video with burned-in TikTok-style captions"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 60020
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.179,
+      "skill_install_s": 0.398,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 0.577,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "hub show + hub install. No subagent \u2014 ran in main session. faster-whisper already installed as dep."
+    },
+    "asset_acquisition": {
+      "download_s": 0.217,
+      "llm_overhead_s": null,
+      "total_s": 0.217,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3, ~22.6 MB/s. 4.79MB input."
+    },
+    "execution": {
+      "probe_s": 0.076,
+      "skill_run_s": 30.397,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 0.172,
+          "notes": "ffmpeg -vn -ar 16000 -ac 1, 719x realtime"
+        },
+        {
+          "name": "transcribe_faster_whisper",
+          "duration_s": 24.733,
+          "notes": "Standalone run: small model, CPU, int8. 8 segments, 135 words, 0.37x realtime"
+        },
+        {
+          "name": "caption_script_full",
+          "duration_s": 30.397,
+          "notes": "Full pipeline: includes internal re-transcription + ass generation + ffmpeg burn. 30.4s total, ~0.45x realtime"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 55.378,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "ffprobe for metadata, then standalone whisper, then full caption_video.py pipeline."
+    },
+    "delivery": {
+      "upload_s": 26.103,
+      "output_size_kb": 30726,
+      "output_url": "https://cdn.pika.art/v2/files/agent/5888ac26-73c5-4739-8ab2-5d7f1ada7018/bench_vc_round1_tiktok_output.mp4",
+      "llm_overhead_s": null,
+      "total_s": 26.103,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "pika-upload-file. 30MB output (~1.15 MB/s upload rate)"
+    }
+  },
+  "tokens": {
+    "input_tokens": 22,
+    "output_tokens": 4028,
+    "cache_read_tokens": 1141837,
+    "cache_write_tokens": 148937,
+    "total_tokens": 1294824
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.9616
+  },
+  "totals": {
+    "tool_calls_s": 82.275,
+    "llm_overhead_s": 77.496,
+    "wall_total_s": 159.771,
+    "llm_pct": 48.5,
+    "skill_pct": 51.5
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "date": "2026-04-11",
+    "round": 2,
+    "tester": "mingzhi",
+    "notes": "Run2 re-run. Translation pipeline 58.8s. Consistent with prior runs.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "TikTok-style short vlog, English speech, vertical format",
+      "resolution": "720x1280", "duration_s": 67.8, "codec": "HEVC+AAC", "size_kb": 4915,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "latest (skill_01QeCE8TxFvwoTZy7e6FuXAz, v1775907224415208)",
+    "purpose": "Translate 67.8s English vlog to Spanish, no lip sync",
+    "expected_output": "Spanish-dubbed mp4 with cloned speaker voice"
+  },
+  "platform": {
+    "name": "managed-claude-agent", "runtime": "Anthropic managed container",
+    "llm_model": "Claude Sonnet 4.6", "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {"cms_fetch_s": null, "skill_install_s": null, "subagent_start_s": null, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "Skills pre-loaded."},
+    "asset_acquisition": {"download_s": 2.8, "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null}, "notes": "Downloaded 4.7MB. SKILL.md read 11.2s (awk error)."},
+    "execution": {
+      "probe_s": null, "skill_run_s": 58.768,
+      "steps": [
+        {"name": "read_skill_md", "duration_s": 11.2, "notes": "awk error but agent proceeded"},
+        {"name": "nohup_background_start", "duration_s": 0.8, "notes": "Started translate_video.py in background"},
+        {"name": "poll_completion", "duration_s": 60.8, "notes": "Script reported 58768ms. Pipeline: extract audio → Whisper → GPT-4o → ElevenLabs clone + TTS → ffmpeg replace."}
+      ],
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Translation pipeline 58.8s."
+    },
+    "delivery": {
+      "upload_s": 3.9, "output_size_kb": 4336,
+      "output_url": "https://msaocnoosm1a4.pika.art/v2/files/agent/5ae646f4-17eb-4c29-b753-8ca98b2f3a3a/translated.mp4",
+      "llm_overhead_s": null, "total_s": null, "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload 2.6s actual."
+    }
+  },
+  "tokens": {"input_tokens": 91, "output_tokens": 1654, "cache_read_tokens": 42323, "cache_write_tokens": 5782, "total_tokens": 49850},
+  "cost": {"model": "Claude Sonnet 4.6", "input_price_per_million": 3, "output_price_per_million": 15, "cache_read_price_per_million": 0.30, "cache_write_price_per_million": 3.75, "estimated_cost_usd": 0.060},
+  "totals": {"tool_calls_s": 79.531, "llm_overhead_s": 28.611, "wall_total_s": 108.142, "llm_pct": 26.5, "skill_pct": 73.5}
+}

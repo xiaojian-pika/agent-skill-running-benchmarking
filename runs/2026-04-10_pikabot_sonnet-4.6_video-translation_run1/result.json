@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Clean test. No errors \u2014 single-pass run. Voice clone auto-cleaned up post-run. Output smaller than input (HEVC\u2192AAC audio replacement, no video re-encode). TTS is dominant bottleneck (61.6% of translate pipeline). Wall_total includes estimated 4s upload (wall_end recorded before upload call).",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli daily vlog, vertical 720p, 67.8s, H.265/HEVC",
+      "resolution": "720x1280",
+      "duration_s": 67.803,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "video-translation",
+    "version": "1.0.5",
+    "purpose": "Translate 67.8s English vlog to Spanish (no lip sync) using ElevenLabs voice clone + TTS",
+    "expected_output": "An MP4 video with Spanish dubbed audio track replacing the original English"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 100554
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.227,
+      "skill_install_s": 1.766,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 1.993,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "hub show + hub install v1.0.5. Deps pre-installed from prior session."
+    },
+    "asset_acquisition": {
+      "download_s": 0.366,
+      "llm_overhead_s": null,
+      "total_s": 0.366,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3, ~13 MB/s. 4.79MB input."
+    },
+    "execution": {
+      "probe_s": 0.078,
+      "skill_run_s": 31.81,
+      "steps": [
+        {
+          "name": "extract_audio",
+          "duration_s": 1.0,
+          "notes": "ffmpeg audio extract, ~1.0s"
+        },
+        {
+          "name": "whisper_transcribe",
+          "duration_s": 3.2,
+          "notes": "faster-whisper, 630 chars transcribed, ~3.2s"
+        },
+        {
+          "name": "translate_gpt4o",
+          "duration_s": 2.1,
+          "notes": "GPT-4o translation EN\u2192ES, 652 chars output, ~2.1s"
+        },
+        {
+          "name": "voice_clone_elevenlabs",
+          "duration_s": 4.9,
+          "notes": "ElevenLabs voice clone from source audio, ID nBUtpqrNgkY7eRTV4t0z, ~4.9s"
+        },
+        {
+          "name": "tts_eleven_v3",
+          "duration_s": 18.5,
+          "notes": "ElevenLabs TTS eleven_v3, 582.5KB output audio, ~18.5s (61.6% of pipeline)"
+        },
+        {
+          "name": "replace_audio_ffmpeg",
+          "duration_s": 1.3,
+          "notes": "ffmpeg audio replacement, no video re-encode, ~1.3s"
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 31.888,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Step timings from script stdout markers. TTS at 18.5s is dominant sub-step (61.6% of translate time)."
+    },
+    "delivery": {
+      "upload_s": 4.0,
+      "output_size_kb": 2902,
+      "output_url": "https://cdn.pika.art/v2/files/agent/3eba9909-bd7d-4325-8977-e4494c0c435e/bench_vt_round1_es_output.mp4",
+      "llm_overhead_s": null,
+      "total_s": 4.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "pika-upload-file. 2.9MB output (much smaller than input \u2014 only audio replaced, no video re-encode). Upload time estimated ~4s."
+    }
+  },
+  "tokens": {
+    "input_tokens": 11,
+    "output_tokens": 2070,
+    "cache_read_tokens": 1016416,
+    "cache_write_tokens": 105798,
+    "total_tokens": 1124295
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.7328
+  },
+  "totals": {
+    "tool_calls_s": 38.247,
+    "llm_overhead_s": 67.714,
+    "wall_total_s": 105.961,
+    "llm_pct": 63.9,
+    "skill_pct": 36.1
+  }
+}

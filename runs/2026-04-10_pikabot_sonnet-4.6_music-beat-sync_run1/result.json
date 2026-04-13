@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Clean test. MiniMax music generation: 163.0s for 16.0s track (hype/120BPM trap). 26 scene cuts detected, sync mode auto-selected. Output 3.4x larger than input (HEVC\u2192H.264 re-encode). Wall_total includes estimated 14s upload (wall_end recorded before upload call \u2014 timing note). Music generated inline in beat_sync_full step.",
+    "test_input": {
+      "name": "charli-daily-vlog.mp4",
+      "description": "Charli daily vlog, vertical 720p, 67.8s, H.265/HEVC",
+      "resolution": "720x1280",
+      "duration_s": 67.803,
+      "codec": "hevc",
+      "size_kb": 4790,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-beat-sync",
+    "version": "1.0.6",
+    "purpose": "Add hype BPM-matched beat-sync music to a 67.8s vertical vlog (720p HEVC) using --vibe hype --dev",
+    "expected_output": "An MP4 video with hype trap music, video cuts synchronized to beats"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 81485
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": 0.156,
+      "skill_install_s": 11.851,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": 12.007,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "hub show + hub install v1.0.6. pip deps installed during skill_install (librosa, scipy, etc.)."
+    },
+    "asset_acquisition": {
+      "download_s": 0.135,
+      "llm_overhead_s": null,
+      "total_s": 0.135,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "curl from S3, ~37 MB/s. 4.79MB input."
+    },
+    "execution": {
+      "probe_s": 0.077,
+      "skill_run_s": 226.835,
+      "steps": [
+        {
+          "name": "scene_detection",
+          "duration_s": 3.762,
+          "notes": "ffmpeg select filter scene>0.35, 26 cuts detected in 67.8s video"
+        },
+        {
+          "name": "music_generation_minimax",
+          "duration_s": 163.0,
+          "notes": "163.0s for 16.0s track, hype/120BPM trap. Included inside beat_sync_full."
+        },
+        {
+          "name": "beat_alignment",
+          "duration_s": null,
+          "notes": "136 beats @ 120BPM (0.5s interval). Sync mode, 27 segments speed-adjusted. Included in beat_sync_full."
+        },
+        {
+          "name": "audio_mix",
+          "duration_s": null,
+          "notes": "ffmpeg replace-mode audio overlay. Included in beat_sync_full."
+        },
+        {
+          "name": "beat_sync_full",
+          "duration_s": 226.835,
+          "notes": "Full script wall time: S1 probe + S2 music_gen + S3 beat_calc + S4 align + S5 mix. Music gen at 163.0s is dominant bottleneck (71.8% of beat_sync_full)."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 230.674,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Scene detection run standalone before full script (as instructed). Probe also run standalone. beat_sync_full re-runs probe and scene-detect internally."
+    },
+    "delivery": {
+      "upload_s": 14.0,
+      "output_size_kb": 16447,
+      "output_url": "https://cdn.pika.art/v2/files/agent/f803f19b-3ed3-41c7-ac64-638227bce38e/bench_bs_round1_hype_output.mp4",
+      "llm_overhead_s": null,
+      "total_s": 14.0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "pika-upload-file. 16.1MB output. Upload time estimated at 14s (wall_end recorded pre-upload)."
+    }
+  },
+  "tokens": {
+    "input_tokens": 20,
+    "output_tokens": 4735,
+    "cache_read_tokens": 1609780,
+    "cache_write_tokens": 96689,
+    "total_tokens": 1711224
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "estimated_cost_usd": 0.9166
+  },
+  "totals": {
+    "tool_calls_s": 256.816,
+    "llm_overhead_s": 121.361,
+    "wall_total_s": 378.177,
+    "llm_pct": 32.1,
+    "skill_pct": 67.9
+  }
+}

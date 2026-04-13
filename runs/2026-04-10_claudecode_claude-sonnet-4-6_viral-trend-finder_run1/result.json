@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "date": "2026-04-10",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "T1/T2/T3/T4 executed in a single continuous bash call — WALL_START and WALL_END in the same shell, no CC activity between runs. LLM overhead 0.154s is measurement noise. T3 Anthropic proxy hit 2x ReadTimeout on LLM synthesis → fell back to OpenAI; analysis succeeded. T3 sub-stage timings are precise (⏱ [TIMING] markers added to skill for this benchmark). TikTok native trending returned 0 in T4 — keyword fallback triggered. Token delta from session JSONL (13:03:57–13:10:57 UTC window, 60s pre-buffer); covers 11 CC messages.",
+    "test_input": {
+      "name": "social-trend-queries",
+      "description": "fitness (TikTok+Instagram), cooking (X), analyze (T1 first URL), trending (general)",
+      "resolution": "N/A",
+      "duration_s": null,
+      "codec": "N/A",
+      "size_kb": null,
+      "url": "N/A"
+    }
+  },
+  "task": {
+    "name": "viral-trend-finder",
+    "version": "eeb6d71",
+    "purpose": "Discover trending social content by niche across TikTok, Instagram, and X; deep-analyze video URLs via yt-dlp download → ffmpeg frame extraction → Gemini Vision per-frame → LLM synthesis; return storyboard + hook copy",
+    "expected_output": "JSON with trend results (find/trending) or storyboard + success factors + hook copy (analyze) per test case"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "staging devbox",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/Pikabot/nova3-agent-skills/viral-trend-finder/. Pre-flight: ffmpeg 7.0.2 (static binary), yt-dlp 2026.03.17, Pillow 12.2.0 installed before benchmark."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No external benchmark assets. T3 video download (12180KB) is internal to the analyze pipeline."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 358.874,
+      "steps": [
+        {
+          "name": "t1_find_fitness",
+          "duration_s": 23.872,
+          "notes": "find 'fitness' --platforms tiktok,instagram --count 5. Apify TikTok + Apify Instagram in parallel. Results: 18 trending videos. Top: @fitness.953 8.0M views (TikTok), @hananerech 6.6M views (TikTok). T3 URL: https://www.tiktok.com/@fitness.953/video/7575863220104170783"
+        },
+        {
+          "name": "t2_find_cooking_x",
+          "duration_s": 3.941,
+          "notes": "find 'cooking' --platforms x --count 5. RapidAPI Twitter search. Results: 5 trending posts. Top: @ThoughtCrimes80 4.4M views, @DudespostingWs 2.6M views. Note: X view counts here are actual video views (unlike prior run where likes were proxied)."
+        },
+        {
+          "name": "t3_analyze",
+          "duration_s": 249.786,
+          "notes": "analyze https://www.tiktok.com/@fitness.953/video/7575863220104170783. Video: 60s, 12180KB. Pipeline: yt-dlp metadata → download → ffmpeg 1fps (60 frames extracted, 20 sampled) → Gemini Vision ×20 (5 concurrent, 1/20 failed) → LLM synthesis. Anthropic proxy 2x ReadTimeout → OpenAI fallback; succeeded. Output: 10-shot storyboard, title='Grit and Glory: Fitness Challenge'. metadata_s=1.10 download_s=2.20 frame_extract_s=5.48 gemini_vision_s=23.00 llm_synthesis_s=217.81 shots=10 frames=20"
+        },
+        {
+          "name": "t4_trending",
+          "duration_s": 81.275,
+          "notes": "trending (no niche). TikTok native trending returned 0 → keyword fallback: 5 categories × 3 platforms = 15 parallel searches. Results: 10 trending videos. Top: 73.8M views (TikTok), 41.9M views (TikTok), 36.3M views (TikTok). X and Instagram below TikTok view threshold."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 358.874,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = T1+T2+T3+T4 (23.872+3.941+249.786+81.275). T3 dominated (249.8s): LLM synthesis with 2x Anthropic ReadTimeout + OpenAI fallback = 217.8s alone. Gemini Vision fast (23.0s for 20 frames at max_workers=5). TikTok native trending consistently returns 0 on this devbox."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 30,
+      "output_url": "",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No CDN upload — local delivery. T1 stdout 15.7KB (18 results), T2 stdout 1.9KB (5 results), T3 stdout 8.7KB (storyboard JSON), T4 stdout 3.5KB (10 results). T3 report also saved to /tmp/.pikabot/viral-trend-finder/. Total ~30KB."
+    }
+  },
+  "tokens": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cache_read_tokens": null,
+    "cache_write_tokens": null,
+    "total_tokens": null,
+    "_note": "Nulled: extract-cc-tokens.py reported session-cumulative totals, not per-task usage. Token data included other tasks from the same Claude Code session."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": null,
+    "_note": "Nulled: derived from unreliable session-cumulative token counts."
+  },
+  "totals": {
+    "tool_calls_s": 358.874,
+    "llm_overhead_s": 0.154,
+    "wall_total_s": 359.028,
+    "llm_pct": 0.043,
+    "skill_pct": 99.957
+  }
+}
