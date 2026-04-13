@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "date": "2026-04-13",
+    "round": 2,
+    "tester": "Claude Code (claude-sonnet-4-6, self-benchmarking)",
+    "notes": "MCA platform run using music-video/agent/run_session.py + worker_headless.py. Model: Opus 4.6. Engine: Kling (kling_via_fal — direct API 429). Workers run as background bash subprocesses. Fixes applied vs run1: (1) SSE reconnect logic with cursor-based ?after=, (2) result.txt CDN URL backup write in Step 8, (3) Agent v3 system prompt (no binary file reads). New issue discovered: stream endpoint returns 400 for ?after= parameter — cursor-based reconnect not supported on stream endpoint (only on events REST API). Result: observer (run_session.py) stopped writing to jsonl after event 100, but session ran to completion. CDN URL captured via events API polling after session went idle. Session stats show no tail waste (compare run1 wall=4432s vs run2 wall=1653s). Container crash at 14:04:52 UTC during monitoring sleep — workers survived as bash background processes.",
+    "test_input": {
+      "name": "APT. — ROSÉ & Bruno Mars (Apple Music 30s preview)",
+      "description": "Same test input as run1. Apple Music 30s preview, auto-downloaded within session.",
+      "resolution": "audio only (mp3, 44100Hz mono 128kbps)",
+      "duration_s": 29.988,
+      "codec": "mp3",
+      "size_kb": null,
+      "url": null
+    }
+  },
+  "task": {
+    "name": "music-video",
+    "version": "feat/music-video (d05693e)",
+    "purpose": "Full e2e music video generation on Managed Claude Agent. Apple Music 30s preview → shot script → character_ref → keyframes → 3 parallel worker_headless.py processes (10 clips: Kling via FAL i2v + LTX-2.3 lipsync) → assembly → karaoke captions → CDN upload.",
+    "expected_output": "A 30s 1080×1920 9:16 vertical mp4 with karaoke captions, delivered via CDN"
+  },
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container (cloud)",
+    "llm_model": "Claude Opus 4.6",
+    "agent_id": "agent_011Ca1fKcqjAaSUVrwXruTgE",
+    "agent_version": 3,
+    "environment_id": "env_01C7HCQETarSF2XMLwzx2PGZ",
+    "session_id": "sesn_011Ca1szHXMmXX6G7EEER1oM",
+    "system_prompt_tokens": null
+  },
+  "output": {
+    "cdn_url": "https://cdn.pika.art/v2/files/agent/ad7cdde8-1cbb-4b99-88c2-cc998840ab38/final.mp4",
+    "clips": 10,
+    "duration_s": 29.988,
+    "resolution": "1080x1920",
+    "has_captions": true,
+    "engine": "kling_via_fal"
+  },
+  "phases": {
+    "install": {
+      "total_s": null,
+      "notes": "Not applicable. Skill pre-installed in environment via GitHub resource mount (feat/music-video branch)."
+    },
+    "asset_acquisition": {
+      "env_setup_s": 42,
+      "apple_music_s": 76,
+      "total_s": 118,
+      "notes": "Env setup (agent boot, export env vars): 42s. Apple Music: proxy call succeeded on first attempt (no DNS failures this run), download + ffmpeg: ~76s. PYTHONPATH via manual export (same issue as run1). Total from session creation to audio locked: 13:51:45→13:53:48."
+    },
+    "execution": {
+      "steps": [
+        {
+          "name": "shot_script_gen",
+          "start_utc": "2026-04-13T13:53:48Z",
+          "end_utc": "2026-04-13T13:54:36Z",
+          "duration_s": 48,
+          "notes": "LLM generated 10-clip shot script for 29.99s audio."
+        },
+        {
+          "name": "batch_creation",
+          "start_utc": "2026-04-13T13:54:17Z",
+          "end_utc": "2026-04-13T13:54:25Z",
+          "duration_s": 8,
+          "notes": "10 clips → 3 batches (4+4+2)."
+        },
+        {
+          "name": "character_ref_gen",
+          "start_utc": "2026-04-13T13:54:36Z",
+          "end_utc": "2026-04-13T13:55:51Z",
+          "duration_s": 75,
+          "notes": "Gemini text-to-image (1K). Output: 1387KB JPG."
+        },
+        {
+          "name": "keyframe_gen",
+          "start_utc": "2026-04-13T13:55:55Z",
+          "end_utc": "2026-04-13T14:03:09Z",
+          "duration_s": 434,
+          "notes": "10 clips via CLI: python3 keyframes.py --project-dir. Much slower than run1 (~180s for 11 clips via Python import). CLI initialization overhead + Gemini API latency ~43s/clip. Stream dropped during this phase; events 101+ not captured by local observer but session continued correctly."
+        },
+        {
+          "name": "parallel_video_gen",
+          "start_utc": "2026-04-13T14:03:24Z",
+          "end_utc": "2026-04-13T14:10:53Z",
+          "duration_s": 449,
+          "notes": "3 worker_headless.py subprocesses. 10 clips: Kling direct API 429 → all via kling_via_fal (~90-97s/clip). Worker1: 4 clips in 387s (97s/clip). Worker2: 4 clips in 340s (85s/clip). Worker3: 2 clips similar. Container crashed at 14:04:52 during monitoring sleep; workers survived as bash background processes."
+        },
+        {
+          "name": "assembly",
+          "start_utc": "2026-04-13T14:10:59Z",
+          "end_utc": "2026-04-13T14:11:45Z",
+          "duration_s": 46,
+          "notes": "ffmpeg normalize (10 clips) + concat + audio mix."
+        },
+        {
+          "name": "captions_upload_cleanup",
+          "start_utc": "2026-04-13T14:11:45Z",
+          "end_utc": "2026-04-13T14:17:46Z",
+          "duration_s": 361,
+          "notes": "faster-whisper (CPU) + ffmpeg subtitle burn + CDN upload + rm -rf cleanup. Captions took ~6 min (run1 ~60s). Likely first-run model download for faster-whisper in this container."
+        }
+      ],
+      "total_s": 1421,
+      "notes": "From first user message to CDN upload complete. Excludes 42s env setup."
+    },
+    "delivery": {
+      "cdn_url": "https://cdn.pika.art/v2/files/agent/ad7cdde8-1cbb-4b99-88c2-cc998840ab38/final.mp4",
+      "upload_s": 15,
+      "total_s": 15,
+      "notes": "CDN URL captured via events API polling after session went idle (not from SSE stream — stream reconnect bug stopped local logging after event 100). result.txt backup written in container confirmed via CDN URL being present."
+    }
+  },
+  "tokens": {
+    "input_tokens": 215,
+    "output_tokens": 13109,
+    "cache_read_input_tokens": 1111282,
+    "cache_write_tokens": 42660,
+    "total_tokens": 1167266,
+    "effective_input_tokens": 1154157,
+    "notes": "From GET /v1/sessions/sesn_011Ca1szHXMmXX6G7EEER1oM usage field. Workers run as subprocess (no LLM) — coordinator is only LLM component. Cache write (42660) is higher than run1 (17435) because more turns / longer context. Cache read lower (1.1M vs 1.2M in run1) — fewer turns overall. Output tokens similar (13109 vs 13855 in run1)."
+  },
+  "cost": {
+    "model": "Claude Opus 4.6",
+    "input_price_per_million": 15.0,
+    "output_price_per_million": 75.0,
+    "cache_read_price_per_million": 1.50,
+    "cache_write_price_per_million": 18.75,
+    "breakdown_usd": {
+      "input": 0.003225,
+      "output": 0.983175,
+      "cache_read": 1.666923,
+      "cache_write": 0.799875
+    },
+    "estimated_cost_usd": 3.453
+  },
+  "totals": {
+    "wall_total_s": 1653.4,
+    "active_seconds": 1565.4,
+    "llm_overhead_s": 88,
+    "wall_total_min": 27.6,
+    "clips": 10,
+    "clips_per_minute": 0.363
+  },
+  "issues": [
+    {
+      "id": "stream-cursor-400",
+      "severity": "medium",
+      "description": "Stream endpoint (/v1/sessions/{id}/stream) returns 400 for ?after= parameter — cursor-based reconnect not supported. run_session.py reconnect logic broken after first stream close.",
+      "impact": "Local observer (run_session.py) stopped writing events to jsonl after event 100. Session ran to completion correctly. CDN URL retrieved via events API polling.",
+      "fix": "Remove ?after= from stream reconnect. Instead: on reconnect, open stream without cursor (server sends new events from current position). Or: use events REST API polling as fallback."
+    },
+    {
+      "id": "container-crash",
+      "severity": "low",
+      "description": "Container crashed at 14:04:52 UTC during monitoring sleep (82s after worker spawn).",
+      "impact": "Session resumed immediately. Workers survived as bash background processes. No clips lost.",
+      "fix": "Expected behavior — container crash recovery is a platform feature."
+    },
+    {
+      "id": "keyframe-cli-slow",
+      "severity": "low",
+      "description": "Agent used python3 keyframes.py --project-dir (CLI) instead of Python import. Much slower: 434s for 10 clips vs ~180s in run1 (11 clips, Python import).",
+      "impact": "Adds ~250s to total wall time.",
+      "fix": "System prompt should enforce Python import pattern for keyframes.py, not CLI invocation."
+    },
+    {
+      "id": "captions-slow",
+      "severity": "low",
+      "description": "Captions+upload took ~361s (run1: ~75s). Likely first-run faster-whisper model download.",
+      "impact": "Adds ~290s vs run1. One-time cost per container.",
+      "fix": "Pre-download faster-whisper model in environment image. Or cache in environment."
+    },
+    {
+      "id": "pythonpath-manual",
+      "severity": "low",
+      "description": "nova3_common not on PYTHONPATH — agent exports manually every bash call.",
+      "impact": "Same as run1 — adds overhead per bash call.",
+      "fix": "Add ENV PYTHONPATH=/workspace/nova3-agent-skills to environment config."
+    }
+  ]
+}
