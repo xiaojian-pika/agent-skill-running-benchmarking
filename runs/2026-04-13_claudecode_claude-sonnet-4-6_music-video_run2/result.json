@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-13",
+    "round": 2,
+    "tester": "Claude Code (claude-sonnet-4-6, self-benchmarking)",
+    "notes": "Engine: Kling via kling_via_fal (fal-ai/kling-video/o3/pro/reference-to-video). Kling direct API returned HTTP 429 (code 1102: account balance not enough) on ALL clips — all character/empty/broll went via FAL fallback. Lipsync: LTX-2.3 via FAL (unchanged from run1). Asset acquisition, shot_script_gen, character_ref_gen, keyframe_gen reused from run1 (not re-timed). W1 agent hit stream idle timeout; clip_003 retried on main thread (+146s to wall time). Wall time covers video_gen_start onward only. Compare video gen phase directly against run1 Minimax.",
+    "test_input": {
+      "name": "APT. — ROSÉ & Bruno Mars (Apple Music 30s preview)",
+      "description": "Reused from run1 — same 29.95s audio, same 9-clip shot script, same character_ref.jpg, same keyframes",
+      "resolution": "audio only (mp3, 44100Hz mono 128kbps)",
+      "duration_s": 29.952,
+      "codec": "mp3",
+      "size_kb": null,
+      "url": null
+    }
+  },
+  "task": {
+    "name": "music-video",
+    "version": "feat/music-video (d05693e)",
+    "purpose": "Engine comparison run: Kling (kling_via_fal) vs run1 Minimax. Same 9-clip shot script, Kling i2v for character/empty/broll, LTX-2.3 for lipsync.",
+    "expected_output": "A 29.95s 1080×1920 9:16 vertical mp4 with karaoke captions, delivered via CDN"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac (darwin 24.6.0, Apple Silicon)",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Not applicable."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Reused from run1 (apple_music=3156ms, convert=411ms). Not re-timed in run2."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 924.8,
+      "steps": [
+        {
+          "name": "shot_script_gen",
+          "duration_s": null,
+          "notes": "Reused from run1 (35.3s). Same 9-clip shot script."
+        },
+        {
+          "name": "character_ref_gen",
+          "duration_s": null,
+          "notes": "Reused from run1 (23.9s). Same character_ref.jpg."
+        },
+        {
+          "name": "keyframe_gen",
+          "duration_s": null,
+          "notes": "Reused from run1 (171.9s). Same 9 keyframes."
+        },
+        {
+          "name": "audio_seg_extract",
+          "duration_s": 0.3,
+          "notes": "3 lipsync audio segments re-extracted (same as run1)."
+        },
+        {
+          "name": "parallel_video_gen",
+          "duration_s": 862.65,
+          "notes": "3 parallel workers. Kling direct API: 429 on ALL clips (code 1102 balance). All 6 character/empty/broll went via kling_via_fal (fal-ai/kling-video/o3/pro/reference-to-video). Per-clip Kling FAL times: clip_001 ~240s, clip_002 ~270s, clip_003 143.8s (main thread retry after W1 timeout), clip_005 224.5s, clip_007 214.5s, clip_008 259.0s. Lipsync: clip_004 50.4s, clip_006 51.8s, clip_009 56.3s. W1 agent hit stream idle timeout at ~571s; clip_003 retried on main thread."
+        },
+        {
+          "name": "assembly",
+          "duration_s": 17.95,
+          "notes": "normalize: 17447ms (9 clips), concat: 178ms, audio_mix: 325ms. Output: raw_audio2.mp4 20976KB."
+        },
+        {
+          "name": "captions",
+          "duration_s": 26.8,
+          "notes": "faster-whisper (small, CPU), karaoke style. Output: final2.mp4 41732KB."
+        }
+      ],
+      "llm_overhead_s": 52.4,
+      "total_s": 939.0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "wall_total - all_tool_calls = 977.2 - 924.8 = 52.4s LLM overhead (worker coordination, error handling messages)."
+    },
+    "delivery": {
+      "upload_s": 10.088,
+      "output_size_kb": 41732,
+      "output_url": "https://cdn.pika.art/v2/files/agent/fadc23c6-1011-4562-923a-3e2d7621b468/final2.mp4",
+      "llm_overhead_s": 0,
+      "total_s": 10.088,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload via nova3_common.cdn.upload_to_cdn."
+    }
+  },
+  "tokens": {
+    "input_tokens": 34,
+    "output_tokens": 29388,
+    "cache_read_tokens": 2583487,
+    "cache_write_tokens": 222682,
+    "total_tokens": 2835591,
+    "notes": "extracted --after 2026-04-13T10:11:05Z --before 2026-04-13T10:27:22Z. effective_input_tokens=2806203. Higher cache_write vs run1 (222K vs 55K) due to workers logging API errors and retry attempts."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 2.051
+  },
+  "totals": {
+    "tool_calls_s": 924.8,
+    "llm_overhead_s": 52.4,
+    "wall_total_s": 977.2,
+    "llm_pct": 5.4,
+    "skill_pct": 94.6
+  }
+}

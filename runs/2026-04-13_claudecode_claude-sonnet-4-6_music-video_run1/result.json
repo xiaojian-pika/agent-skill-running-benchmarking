@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "date": "2026-04-13",
+    "round": 1,
+    "tester": "Claude Code (claude-sonnet-4-6, self-benchmarking)",
+    "notes": "Engine used: Minimax Hailuo-2.3-Fast (NOT Kling). Benchmark prompt specified Minimax for speed; correct default engine per SKILL.md is Kling (with kling_via_fal fallback). This run measures Minimax path. Lipsync: LTX-2.3 via FAL (fal-ai/ltx-2.3/audio-to-video). socksio was missing for httpx[socks] — installed at runtime (434ms penalty on first Gemini call). Audio: Apple Music 30s preview.",
+    "test_input": {
+      "name": "APT. — ROSÉ & Bruno Mars (Apple Music 30s preview)",
+      "description": "30s Apple Music preview, auto-downloaded via apple-music-reference script",
+      "resolution": "audio only (mp3, 44100Hz mono 128kbps)",
+      "duration_s": 29.952,
+      "codec": "mp3",
+      "size_kb": null,
+      "url": "https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-tests/charli-daily-vlog.mp4"
+    }
+  },
+  "task": {
+    "name": "music-video",
+    "version": "feat/music-video (d05693e)",
+    "purpose": "Full e2e music video generation: Apple Music 30s preview → shot script → keyframes → 9 parallel clips (Minimax i2v + LTX-2.3 lipsync) → assembly → karaoke captions → CDN upload",
+    "expected_output": "A 29.95s 1080×1920 9:16 vertical mp4 with karaoke captions, delivered via CDN"
+  },
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac (darwin 24.6.0, Apple Silicon)",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Skill pre-installed at /Users/rinko/nova3-agent-skills. No install step."
+    },
+    "asset_acquisition": {
+      "download_s": 3.567,
+      "llm_overhead_s": 0,
+      "total_s": 3.567,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "apple_music_search: 3156ms, convert_m4a_to_mp3: 411ms. Song: APT. by ROSÉ & Bruno Mars, 29.95s preview."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 678.9,
+      "steps": [
+        {
+          "name": "shot_script_gen",
+          "duration_s": 35.289,
+          "notes": "LLM generates 9-clip shot script for 29.95s audio. Types: 2 empty, 3 character, 1 broll_instrument, 3 lipsync."
+        },
+        {
+          "name": "character_ref_gen",
+          "duration_s": 23.914,
+          "notes": "Gemini text-to-image (gemini-3.1-flash-image-preview, 1K). Output: 1.2MB jpg. Note: first call failed due to missing socksio (434ms penalty), retried successfully."
+        },
+        {
+          "name": "keyframe_gen",
+          "duration_s": 171.917,
+          "notes": "Gemini API, 9 clips sequential. All 9 keyframes generated (1.2–2.1MB each). Grid: grid_batch01.png."
+        },
+        {
+          "name": "audio_seg_extract",
+          "duration_s": 0.288,
+          "notes": "ffmpeg: 3 audio segments extracted for lipsync clips (004, 006, 009)."
+        },
+        {
+          "name": "parallel_video_gen",
+          "duration_s": 346.042,
+          "notes": "3 parallel workers (wall clock). W1: 222.8s (clips 001-003, Minimax); W2: 174s (clips 004-006, LTX+Minimax); W3: 211s (clips 007-009, Minimax+LTX). Longest worker determined wall time. 6 Minimax i2v clips + 3 LTX-2.3 lipsync clips."
+        },
+        {
+          "name": "assembly",
+          "duration_s": 28.531,
+          "notes": "normalize: 27972ms (9 clips → 1080×1920 @30fps), concat: 219ms, audio_mix: 340ms. Output: raw_audio.mp4 18024KB."
+        },
+        {
+          "name": "captions",
+          "duration_s": 73.030,
+          "notes": "faster-whisper (small, CPU), detected Korean, style: karaoke --no-vad. 36 words. CJK font: AppleSDGothicNeo. Output: final.mp4 38404KB."
+        }
+      ],
+      "llm_overhead_s": 35.289,
+      "total_s": 793.3,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "llm_overhead_s is shot_script_gen only (measurable LLM-only step). Worker coordination/subagent LLM overhead is embedded in parallel_video_gen wall time."
+    },
+    "delivery": {
+      "upload_s": 9.995,
+      "output_size_kb": 38404,
+      "output_url": "https://cdn.pika.art/v2/files/agent/87844656-267f-4de6-865e-cb5f1ac39e43/final.mp4",
+      "llm_overhead_s": 0,
+      "total_s": 9.995,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload via nova3_common.cdn.upload_to_cdn."
+    }
+  },
+  "tokens": {
+    "input_tokens": 59,
+    "output_tokens": 43084,
+    "cache_read_tokens": 2975786,
+    "cache_write_tokens": 54849,
+    "total_tokens": 3073778,
+    "notes": "extracted via extract-cc-tokens.py --after 2026-04-13T09:50:35Z --before 2026-04-13T10:04:02Z. effective_input_tokens=3030694 (input+cache_read+cache_write). Includes main + 3 worker subagents (45 messages total, 37 filtered outside window)."
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 1.7449
+  },
+  "totals": {
+    "tool_calls_s": 657.2,
+    "llm_overhead_s": 149.9,
+    "wall_total_s": 807.1,
+    "llm_pct": 18.6,
+    "skill_pct": 81.4
+  }
+}
