@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "date": "2026-04-13",
+    "round": 1,
+    "tester": "Claude Code (claude-sonnet-4-6, self-benchmarking)",
+    "notes": "MCA platform run using music-video/agent/run_session.py + worker_headless.py. Model: Opus 4.6. Engine: Kling (kling_via_fal — direct API 429). Workers run as background bash subprocesses (worker_headless.py), not LLM subagents. Two stream disconnection issues: (1) agent-api-2026-03-01 vs managed-agents-2026-04-01 beta header mismatch fixed mid-session; (2) SSE stream drops after ~5-10 min (RemoteProtocolError: incomplete chunked read) — session continued running to completion in background. CDN URL not captured: events API returns max 100 events (ascending), final delivery message is event #120+. Session IDs: sesn_011Ca1jsqx8LZH4NdmpJ3R6m (main run), agent_011Ca1fKcqjAaSUVrwXruTgE, env_01C7HCQETarSF2XMLwzx2PGZ. Wall time includes stream-disconnect tail (~12 min idle at end).",
+    "test_input": {
+      "name": "APT. — ROSÉ & Bruno Mars (Apple Music 30s preview)",
+      "description": "Same test input as claudecode runs. Apple Music 30s preview, auto-downloaded within session.",
+      "resolution": "audio only (mp3, 44100Hz mono 128kbps)",
+      "duration_s": 29.988,
+      "codec": "mp3",
+      "size_kb": null,
+      "url": null
+    }
+  },
+  "task": {
+    "name": "music-video",
+    "version": "feat/music-video (d63c2a8)",
+    "purpose": "Full e2e music video generation on Managed Claude Agent. Apple Music 30s preview → shot script → character_ref → keyframes → 3 parallel worker_headless.py processes (11 clips: Kling FAL i2v + LTX-2.3 lipsync) → assembly → karaoke captions → CDN upload.",
+    "expected_output": "A 30s 1080×1920 9:16 vertical mp4 with karaoke captions, delivered via CDN"
+  },
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container (cloud)",
+    "llm_model": "Claude Opus 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Not applicable. Skill pre-installed in environment via GitHub resource mount (feat/music-video branch). Environment packages (ffmpeg, faster-whisper, etc.) pre-installed in env_01C7HCQETarSF2XMLwzx2PGZ."
+    },
+    "asset_acquisition": {
+      "download_s": 140.0,
+      "llm_overhead_s": 50.0,
+      "total_s": 190.0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "env_setup took 50s (agent booted container, received env vars). Apple Music had DNS failures (2 attempts, ~40s), then proxy call succeeded + direct download (~60s). ffmpeg conversion: ~6s. PYTHONPATH setup (nova3_common not on path, pip install failed, manual PYTHONPATH export): ~57s. Total asset acquisition including setup: ~190s from session creation to audio locked (12:05:22 → 12:08:44)."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 3762.0,
+      "steps": [
+        {
+          "name": "shot_script_gen",
+          "duration_s": 25.0,
+          "notes": "LLM generated 11-clip shot script for 29.99s audio. Types: 3 lipsync, 4 character, 2 empty, 1 broll_instrument, 1 mixed. 12:08:44 → 12:09:03."
+        },
+        {
+          "name": "batch_creation",
+          "duration_s": 8.0,
+          "notes": "11 clips → 3 batches (4+4+3). 12:09:10 → 12:09:18."
+        },
+        {
+          "name": "character_ref_gen",
+          "duration_s": 27.0,
+          "notes": "Gemini text-to-image (gemini-3.1-flash-image-preview, 1K). Output: 1.4MB PNG. 12:09:28 → 12:09:55."
+        },
+        {
+          "name": "keyframe_gen",
+          "duration_s": 180.0,
+          "notes": "Gemini API, 11 clips. Agent had to create project.json first (keyframes.py requires it). Duration estimated: ~180s for 11 sequential Gemini calls. Stream dropped at 12:10:30 (start of keyframe gen); completed at ~12:13:30 (estimate)."
+        },
+        {
+          "name": "parallel_video_gen",
+          "duration_s": 1000.0,
+          "notes": "3 worker_headless.py subprocesses. 11 clips: 8 Kling FAL i2v (direct API 429 → all via kling_via_fal, ~225s each) + 3 LTX-2.3 lipsync (~53s each). Estimated wall time: 3 workers × ~4 clips sequential = ~900-1000s (13:13:30 → ~12:30, estimate). Workers ran as background bash processes; agent polled every 60s. Time is estimated from session active_seconds and phase breakdown."
+        },
+        {
+          "name": "assembly",
+          "duration_s": 30.0,
+          "notes": "ffmpeg normalize (11 clips) + concat + audio mix. Estimated ~30s."
+        },
+        {
+          "name": "captions",
+          "duration_s": 60.0,
+          "notes": "faster-whisper (small, CPU) + ffmpeg subtitle burn. Estimated ~60s for 30s audio."
+        }
+      ],
+      "llm_overhead_s": 268.0,
+      "total_s": 3812.0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "execution.skill_run_s covers from first user message sent to CDN upload complete (estimated). llm_overhead_s = session active_seconds (1753.6) - estimated tool_call_s (1485) = ~268s. active_seconds from session metadata includes all container compute time (LLM + tool execution), excluding background worker wait (~2679s of idle time while workers ran)."
+    },
+    "delivery": {
+      "upload_s": 15.0,
+      "output_size_kb": null,
+      "output_url": "NOT_CAPTURED — events API returns first 100 events only; final delivery message is beyond event #120",
+      "llm_overhead_s": null,
+      "total_s": 15.0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload completed (session status idle, tokens consistent with full run). URL not captured due to events API 100-event limit for long sessions."
+    }
+  },
+  "tokens": {
+    "input_tokens": 301,
+    "output_tokens": 13855,
+    "cache_read_tokens": 1219315,
+    "cache_write_tokens": 17435,
+    "total_tokens": 1250906,
+    "notes": "From GET /v1/sessions/sesn_011Ca1jsqx8LZH4NdmpJ3R6m usage field (minus 3 input + 49 output for post-run CDN question). effective_input_tokens = 301 + 1219315 + 17435 = 1237051. Workers run as subprocess (no LLM) — coordinator is the only LLM component. Cache write is ephemeral_5m (system prompt cached per turn). Cache read is large due to system prompt (10.9K chars) cached across all 25 turns. Output tokens (13855) is high relative to Claude Code runs (5280/29388) — Opus 4.6 generates more verbose tool call reasoning."
+  },
+  "cost": {
+    "model": "Claude Opus 4.6",
+    "input_price_per_million": 15.0,
+    "output_price_per_million": 75.0,
+    "cache_read_price_per_million": 1.50,
+    "cache_write_price_per_million": 18.75,
+    "estimated_cost_usd": 3.197
+  },
+  "totals": {
+    "tool_calls_s": 1753.6,
+    "llm_overhead_s": 2678.4,
+    "wall_total_s": 4432.0,
+    "llm_pct": 60.4,
+    "skill_pct": 39.6
+  }
+}
