@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "date": "2026-04-13",
+    "round": 1,
+    "tester": "AI Ringo (PikaBot agent)",
+    "notes": "Full e2e music video generation benchmark. Engine: fal kling (fal-ai/kling-video/o3/pro/reference-to-video). Lipsync: ltx-2.3 (fal-ai/ltx-2.3/audio-to-video). FAL_KEY required — not in default PikaBot env, must be provided by user. Clips generated sequentially (not parallel) — this inflates wall time vs production coordinator+worker architecture. Skill ran directly in main session, not via subagent coordinator.",
+    "test_input": {
+      "name": "Abracadabra — Lady Gaga (Apple Music 30s preview)",
+      "description": "30-second Apple Music preview fetched via apple-music-reference skill",
+      "resolution": "N/A (audio only)",
+      "duration_s": 30,
+      "codec": "AAC (m4a) → MP3",
+      "size_kb": 480,
+      "url": "Apple Music search: 'abracadabra lady gaga'"
+    }
+  },
+
+  "task": {
+    "name": "music-video",
+    "version": "feat/music-video@xiaojian-pika/nova3-agent-skills",
+    "purpose": "Generate a 30s music video from Apple Music preview. Engine: fal kling. Lipsync: ltx-2.3. 7 clips (empty × 2, lipsync × 2, character × 2, broll_instrument × 1). Karaoke captions.",
+    "expected_output": "30s 9:16 MP4 with 7 clips, audio mixed, karaoke captions burned"
+  },
+
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "claude-sonnet-4-6",
+    "system_prompt_tokens": 106000
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": 0,
+      "total_s": 0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Skill installed manually from git (feat/music-video branch), not via Skill Hub CMS. Pre-installed, no runtime install step."
+    },
+    "asset_acquisition": {
+      "download_s": 1,
+      "llm_overhead_s": 3,
+      "total_s": 4,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Apple Music preview fetch via apple-music-reference + ffmpeg m4a→mp3 conversion. Sub-1s API call."
+    },
+    "execution": {
+      "probe_s": 0,
+      "skill_run_s": 1056,
+      "steps": [
+        {
+          "name": "shot_script_generation",
+          "duration_s": 8,
+          "notes": "LLM call (claude-haiku-4-5) to generate 7-clip shot script for 30s audio. Includes JSON parse + validation."
+        },
+        {
+          "name": "keyframe_generation",
+          "duration_s": 168,
+          "notes": "7 individual Gemini image calls via pika proxy. ~24s per keyframe. Output: 7×9:16 JPGs (avg 1.6MB each) + 1 grid PNG."
+        },
+        {
+          "name": "clip_001_empty_kling",
+          "duration_s": 150,
+          "notes": "fal-ai/kling-video/o3/pro/reference-to-video. 4s clip. Output: 10.1MB"
+        },
+        {
+          "name": "clip_002_lipsync_ltx23",
+          "duration_s": 49,
+          "notes": "fal-ai/ltx-2.3/audio-to-video. 4s lipsync clip + audio seg extraction. Output: 3.1MB"
+        },
+        {
+          "name": "clip_003_broll_kling",
+          "duration_s": 165,
+          "notes": "fal-ai/kling-video/o3/pro/reference-to-video. 3s broll_instrument clip. Output: 4.4MB"
+        },
+        {
+          "name": "clip_004_character_kling",
+          "duration_s": 185,
+          "notes": "fal-ai/kling-video/o3/pro/reference-to-video. 4s character clip. Timing error in JSON but file generated (1.8MB). Likely fal_poll timeout race condition."
+        },
+        {
+          "name": "clip_005_empty_kling",
+          "duration_s": 109,
+          "notes": "fal-ai/kling-video/o3/pro/reference-to-video. 4s empty clip. Output: 9.5MB"
+        },
+        {
+          "name": "clip_006_lipsync_ltx23",
+          "duration_s": 48,
+          "notes": "fal-ai/ltx-2.3/audio-to-video. 5s lipsync clip. Output: 1.0MB"
+        },
+        {
+          "name": "clip_007_character_kling",
+          "duration_s": 130,
+          "notes": "fal-ai/kling-video/o3/pro/reference-to-video. 6s character clip. Output: 18.0MB"
+        },
+        {
+          "name": "normalize_concat",
+          "duration_s": 58,
+          "notes": "ffmpeg normalize all 7 clips to 1080×1920@30fps + concat to single file"
+        },
+        {
+          "name": "audio_mix",
+          "duration_s": 1,
+          "notes": "ffmpeg mux original MP3 audio over concatenated video"
+        },
+        {
+          "name": "karaoke_captions",
+          "duration_s": 28,
+          "notes": "caption_video.py --style karaoke --no-vad via video-captions skill. Whisper transcription + ASS burn."
+        }
+      ],
+      "llm_overhead_s": 8688,
+      "total_s": 9744,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Sequential clip generation (no coordinator/worker parallelism — benchmark ran in main session). LLM overhead dominated by polling waits between clip generation tool calls."
+    },
+    "delivery": {
+      "upload_s": 8,
+      "output_size_kb": 38912,
+      "output_url": "https://cdn.pika.art/v2/files/agent/15ef940e-6359-4891-a7c5-e0e3cbbac91a/final.mp4",
+      "llm_overhead_s": 5,
+      "total_s": 13,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload via nova3_common.cdn.upload_to_cdn"
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 44,
+    "output_tokens": 15615,
+    "cache_read_tokens": 4378529,
+    "cache_write_tokens": 1933100,
+    "total_tokens": 6327288
+  },
+
+  "cost": {
+    "model": "claude-sonnet-4-6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 8.797
+  },
+
+  "totals": {
+    "tool_calls_s": 1056,
+    "llm_overhead_s": 8693,
+    "wall_total_s": 9749,
+    "llm_pct": 89.2,
+    "skill_pct": 10.8
+  }
+}
