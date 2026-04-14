@@ -88,6 +88,7 @@ URL: `https://mellis-test-assets.s3.us-east-1.amazonaws.com/video-translation-te
 | social-account-analyzer | API-heavy | PIKA proxy → social APIs |
 | social-posting | API-heavy | PIKA proxy → Composio |
 | viral-trend-finder | API-heavy | PIKA proxy → social APIs |
+| short-film | API-heavy (multi-stage generative) | PIKA proxy → Gemini + Kling + MiniMax + fal |
 
 ## Key Findings (April 2026)
 
