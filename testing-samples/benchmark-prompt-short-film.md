@@ -180,7 +180,102 @@ Also run `python3 ~/code/agent-skill-running-benchmarking/tools/validate-run.py 
 
 ## Managed Claude Agent Prompt
 
-(Same task as Claude Code above, but routed through the Managed Agent API. No install step needed if skill is pre-mounted in the agent's workspace.)
+Start a session using `run_session.py` from `nova3-agent-skills/short-film/agent/`. Required env vars:
+
+```bash
+export SHORT_FILM_AGENT_ID=agent_011Ca5DzAVnAckNg438cPSR1
+export SHORT_FILM_ENV_ID=env_01C7HCQETarSF2XMLwzx2PGZ
+export SKILLS_GITHUB_URL=https://github.com/xiaojian-pika/nova3-agent-skills
+export SKILLS_GITHUB_TOKEN=<github-pat>
+```
+
+Send this prompt as the initial message:
+
+````
+Run a full end-to-end performance benchmark of the short-film skill. Record wall time and per-stage timing.
+
+## Setup
+```bash
+export PYTHONPATH="${PIKABOT_SKILLS_DIR}:${PYTHONPATH}"
+mkdir -p /tmp/short-film
+WALL_START=$(date +%s%N)
+echo "WALL_START=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
+
+## Creative brief (use exactly — standard horror test brief)
+1. Genre: Horror / psychological thriller
+2. Orientation: Portrait (9:16)
+3. Protagonist: Ji-yeon, 22-year-old Korean exchange student, short hair, thin-frame glasses, holds an old film camera
+4. Setting: East Coast US university campus, abandoned library, present day
+5. Style: Cold noir, high contrast black and white with occasional amber highlights
+6. Plot: Ji-yeon sneaks into the abandoned library at night to photograph it. She hears breathing behind a shelf, turns to find a pale girl in a white dress. The ghost says "You are not the first person to come to me." (use sfx_hint for dialogue, not TTS)
+7. Music: Horror/suspense underscore — SFX-driven, lower volume than voices, NOT soothing piano
+
+## Run the pipeline
+
+Time each stage with `T=$(date +%s%N)` before and `echo "stage_X: $(( ($(date +%s%N) - T) / 1000000 ))ms"` after.
+
+**Stage 0 — init:**
+```bash
+T=$(date +%s%N)
+python3 ${PIKABOT_SKILLS_DIR}/short-film/scripts/init.py \
+  --base-dir /tmp/short-film \
+  --theme "horror psychological thriller" \
+  --orientation portrait \
+  --protagonist "Ji-yeon, 22yo Korean exchange student, short hair, thin-frame glasses, old film camera" \
+  --worldview "East Coast US university campus, abandoned library, present day" \
+  --style "cold noir, high contrast black and white, occasional amber highlights"
+echo "stage_0_init: $(( ($(date +%s%N) - T) / 1000000 ))ms"
+PROJECT_DIR=$(ls -d /tmp/short-film/film_* | head -1)
+echo "PROJECT_DIR=$PROJECT_DIR"
+```
+
+**Stage 1 — plan:** Write the story plan JSON using write_plan() with 12 shots covering the horror brief. Use sfx_hint (not dialogue field) for the ghost's line. Time from write_plan() call to file write.
+
+**Stage 2 — assets:**
+```bash
+T=$(date +%s%N)
+python3 ${PIKABOT_SKILLS_DIR}/short-film/scripts/assets.py --project-dir $PROJECT_DIR
+echo "stage_2_assets: $(( ($(date +%s%N) - T) / 1000000 ))ms"
+```
+
+**Stage 2.5 — script preview:** Present the shot-by-shot script to the user and wait for confirmation before proceeding.
+
+**Stage 3 — keyframes:**
+```bash
+T=$(date +%s%N)
+python3 ${PIKABOT_SKILLS_DIR}/short-film/scripts/keyframes.py --project-dir $PROJECT_DIR
+echo "stage_3_keyframes: $(( ($(date +%s%N) - T) / 1000000 ))ms"
+```
+
+**Stage 3.5 — keyframe review:** Show keyframe grids to the user and wait for confirmation.
+
+**Stages 3.6 + 4 — music + video (parallel):** Spawn both as subagents simultaneously after Stage 3.5 confirmation.
+
+**Stage 4.5 — lipsync+mix:**
+```bash
+T=$(date +%s%N)
+python3 ${PIKABOT_SKILLS_DIR}/short-film/scripts/lipsync.py --project-dir $PROJECT_DIR
+echo "stage_4_5_lipsync: $(( ($(date +%s%N) - T) / 1000000 ))ms"
+```
+
+**Wall end:**
+```bash
+WALL_END=$(date +%s%N)
+echo "WALL_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo "WALL_TOTAL: $(( (WALL_END - WALL_START) / 1000000 ))ms"
+```
+
+## After completion
+
+Report:
+- CDN URL of final.mp4
+- Wall start/end ISO timestamps
+- Per-stage durations
+- Final project directory path
+
+I will handle saving the benchmark result.json and report.md from here.
+````
 
 ---
 
