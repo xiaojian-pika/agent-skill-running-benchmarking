@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "date": "2026-04-15",
+    "round": 1,
+    "tester": "pikabot",
+    "notes": "Full pipeline run: Stages 0-4 completed. Stage 4.5 (lipsync) not reached — subagent timed out after video assembly. 2/10 keyframes failed (shot_07, shot_08 — ghost encounter shots). Kling rendered from 8 available keyframes, 4 batches all succeeded. Music generated (MiniMax). No lipsync/audio mix. CDN URL is final_video_only.mp4 (no music mix). Skill installed from git feat/short-film branch (not CMS hub). Token extraction from main session JSONL within benchmark window.",
+    "test_input": {
+      "name": "creative-brief-horror",
+      "description": "Horror/thriller creative brief: Ji-yeon (22yo Korean exchange student) discovers ghost in abandoned university library. 10 shots, portrait 9:16, cold noir B&W with amber highlights.",
+      "resolution": "1080x1920",
+      "duration_s": 51,
+      "codec": "H.264+AAC",
+      "size_kb": 41984,
+      "url": "https://cdn.pika.art/v2/files/agent/2cd158cc-baf8-413f-9d89-2c41235ab91a/final_video_only.mp4"
+    }
+  },
+  "task": {
+    "name": "short-film",
+    "version": "feat/short-film@HEAD",
+    "purpose": "Generate a complete ~60s horror short film from a 7-question creative brief: plan, assets, keyframes, music, Kling video (4 batches)",
+    "expected_output": "Portrait 9:16 MP4 (~60s) with Kling-generated video, per-shot SFX audio, background horror score, and lipsync for dialogue shot, uploaded to CDN"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": 106000
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Skill installed from git (feat/short-film branch via PAT), not CMS hub. No timing applicable."
+    },
+    "asset_acquisition": {
+      "download_s": 0,
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "No test input to download — input is a text creative brief only."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1330,
+      "steps": [
+        {"name": "init", "duration_s": 5, "notes": "Stage 0: project directory + project.json. Estimated from script execution time."},
+        {"name": "plan", "duration_s": 110, "notes": "Stage 1: LLM writes story bible (logline, worldview, 2 characters, 3 scenes, 10 shots) via write_plan(). Includes subagent spawn + LLM plan generation."},
+        {"name": "assets_gemini", "duration_s": 97, "notes": "Stage 2: Gemini generated 2 character portraits + 3 scene images in parallel. 08:24:35 to 08:26:12. All 5 assets succeeded."},
+        {"name": "keyframes_gemini", "duration_s": 553, "notes": "Stage 3: 10 keyframe calls to Gemini flash image preview. 8/10 succeeded (shot_07 and shot_08 failed — ghost encounter shots likely due to horror/disturbing content filtering). Grid composed at 08:35:25."},
+        {"name": "music_minimax", "duration_s": 39, "notes": "Stage 3.6: MiniMax Music generated horror/suspense background score. background_music.mp3 (659KB). 08:35:25 to 08:36:04. Unusually fast — possibly short track generation."},
+        {"name": "video_kling", "duration_s": 648, "notes": "Stage 4: Kling v3 omni multi-shot. 10 shots (8 with keyframes) → 4 batches. Submitted 08:36:45Z. All 4 batches completed by 08:46:11. Assembly + CDN upload by 08:47:33.",
+          "substeps": [
+            {"name": "kling_submit", "duration_s": 30, "notes": "4 concurrent batch submissions"},
+            {"name": "kling_poll_all_batches", "duration_s": 566, "notes": "Centralized polling loop every 30s. 08:36:45Z to 08:46:11Z = 566s"},
+            {"name": "kling_download_assemble", "duration_s": 82, "notes": "Download 4 batch MP4s, normalize, ffmpeg concat, CDN upload. 08:46:11 to 08:47:33 = 82s"}
+          ]
+        },
+        {"name": "lipsync_mix", "duration_s": null, "notes": "Stage 4.5: NOT RUN — subagent hit timeout before reaching lipsync stage. No TTS, no fal lipsync, no music mix. final_video_only.mp4 has no background score."}
+      ],
+      "llm_overhead_s": 202,
+      "total_s": 1532,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Wall 08:22:05 to 08:47:37 = 1532s. tool_calls_s estimated from file mtime deltas."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 41984,
+      "output_url": "https://cdn.pika.art/v2/files/agent/2cd158cc-baf8-413f-9d89-2c41235ab91a/final_video_only.mp4",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload embedded in video.py (Stage 4 execution). output_url confirmed live."
+    }
+  },
+  "tokens": {
+    "input_tokens": 2,
+    "output_tokens": 5299,
+    "cache_read_tokens": 104304,
+    "cache_write_tokens": 109642,
+    "total_tokens": 219247
+  },
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.52
+  },
+  "totals": {
+    "tool_calls_s": 1330,
+    "llm_overhead_s": 202,
+    "wall_total_s": 1532,
+    "llm_pct": 13.2,
+    "skill_pct": 86.8
+  }
+}
