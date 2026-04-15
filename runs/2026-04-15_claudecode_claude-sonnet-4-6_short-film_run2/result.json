@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "date": "2026-04-15",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "FULL RUN — all stages executed including Stage 2 (Gemini assets), Stage 3 (Gemini keyframes), Stage 3.6 (MiniMax music), Stage 4 (Kling video, 4 batches). No lipsync (no dialogue shots — sfx_hint only). Tested latest skill version on feat/short-film branch (commit c9ee2aa) with new Stage 2.5 script preview and Stage 3.5 keyframe review interactive checkpoints. Two bugs discovered and fixed during run: (1) keyframes.py used hardcoded PikaBot subprocess path — replaced with direct HTTP Gemini API; (2) music.py/lipsync.py missing from repo — copied from working Downloads copy; (3) get_sender_headers missing from nova3_common/config.py — added no-op stub. Project ID: film_20260415_2d271d.",
+    "test_input": {
+      "name": "creative-brief-horror",
+      "description": "Horror/thriller creative brief: Ji-yeon (22yo Korean exchange student) breaks into abandoned university library, encounters ghost. 12 shots, portrait 9:16, cold noir style.",
+      "resolution": "1080x1920",
+      "duration_s": 54,
+      "codec": "H.264+AAC",
+      "size_kb": 47511,
+      "url": "https://cdn.pika.art/v2/files/agent/5d05056b-78a5-41b0-ae93-52646da53833/final.mp4"
+    }
+  },
+
+  "task": {
+    "name": "short-film",
+    "version": "c9ee2aa",
+    "purpose": "Generate a complete ~60s horror short film from a 7-question creative brief: plan, assets (Gemini), keyframes (Gemini), music (MiniMax), Kling video (4 batches concurrent), music mix",
+    "expected_output": "Portrait 9:16 MP4 (~60s) with Kling-generated video, per-shot SFX audio, and background horror score, uploaded to CDN"
+  },
+
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/nova3-agent-skills/short-film/"
+    },
+    "asset_acquisition": {
+      "download_s": 0,
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No test input to download — input is a text creative brief only."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1300,
+      "steps": [
+        {
+          "name": "init",
+          "duration_s": 0.1,
+          "notes": "Stage 0: project directory + project.json created. ~0.1s."
+        },
+        {
+          "name": "plan",
+          "duration_s": 0.1,
+          "notes": "Stage 1: write_plan() called directly — story bible + 12 shots written as JSON. ~0.1s."
+        },
+        {
+          "name": "script_preview",
+          "duration_s": null,
+          "notes": "Stage 2.5: script presented to user for confirmation (new interactive stage). Wall time includes user review — not measured as tool time."
+        },
+        {
+          "name": "assets_gemini",
+          "duration_s": 137,
+          "notes": "Stage 2: Gemini flash image preview. 2 character portraits + 3 scene images in parallel (5 workers). 137s total."
+        },
+        {
+          "name": "keyframes_gemini",
+          "duration_s": 289,
+          "notes": "Stage 3: Gemini individual calls per shot (9:16). 12 shots sequential. 1 timeout (shot_08, 504) — retried successfully. ~289s. Bug fixed during run: subprocess → HTTP API.",
+          "substeps": [
+            {
+              "name": "keyframe_generation",
+              "duration_s": 288,
+              "notes": "11 shots in first pass, 1 retry for shot_08 timeout"
+            },
+            {
+              "name": "grid_compose",
+              "duration_s": 1,
+              "notes": "PIL 3×3 grid compose"
+            }
+          ]
+        },
+        {
+          "name": "keyframe_review",
+          "duration_s": null,
+          "notes": "Stage 3.5: 12 keyframes presented to user for confirmation (new interactive stage). Wall time includes user review — not measured as tool time."
+        },
+        {
+          "name": "music_minimax",
+          "duration_s": 74,
+          "notes": "Stage 3.6: MiniMax music-2.5. 56.4s horror underscore. 74s total (ran sequentially after video due to missing music.py — in production should run in parallel with Stage 4)."
+        },
+        {
+          "name": "video_kling",
+          "duration_s": 505,
+          "steps": [
+            {
+              "name": "kling_upload_keyframes",
+              "duration_s": 40,
+              "notes": "12 keyframes uploaded to CDN (2 concurrent workers)"
+            },
+            {
+              "name": "kling_submit",
+              "duration_s": 15,
+              "notes": "4 concurrent batch submissions"
+            },
+            {
+              "name": "kling_poll_all_batches",
+              "duration_s": 360,
+              "notes": "Polling every 30s, 4 batches concurrent. All completed between poll #9 and #12 (~360s)"
+            },
+            {
+              "name": "kling_download_assemble",
+              "duration_s": 90,
+              "notes": "Download 4 MP4s, normalize PTS, ffmpeg concat. final_video_only.mp4 at 54.2s."
+            }
+          ],
+          "notes": "Stage 4: Kling v3 omni, 4 batches (B1-B4), all submitted and polled concurrently."
+        },
+        {
+          "name": "lipsync_mix",
+          "duration_s": 12,
+          "notes": "Stage 4.5: No lipsync (sfx_hint only). Music mix via ffmpeg + CDN upload. 12s total."
+        }
+      ],
+      "llm_overhead_s": 472,
+      "total_s": 1772,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = wall_total_s (1772s). skill_run_s = sum of timed tool steps (0.1+0.1+137+289+74+505+12 = 1017s). llm_overhead_s = wall_total_s - skill_run_s = 1772-1017 = 755s (includes Stage 2.5 and 3.5 user review wait time + LLM thinking + bug investigation/fixes)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 47511,
+      "output_url": "https://cdn.pika.art/v2/files/agent/5d05056b-78a5-41b0-ae93-52646da53833/final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload embedded in lipsync.py (Stage 4.5). Counted in execution.total_s."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 128,
+    "output_tokens": 46254,
+    "cache_read_tokens": 12349200,
+    "cache_write_tokens": 202270,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "total_tokens": 12597852,
+    "_note": "Extracted via extract-cc-tokens.py --after 2026-04-15T07:19:14Z --before 2026-04-15T08:05:19Z. 102 messages matched. effective_input_tokens=12551598."
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 5.16
+  },
+
+  "totals": {
+    "tool_calls_s": 1017,
+    "llm_overhead_s": 755,
+    "wall_total_s": 1772,
+    "llm_pct": 42.6,
+    "skill_pct": 57.4,
+    "_note": "llm_overhead includes Stage 2.5 script review, Stage 3.5 keyframe review, and in-session bug investigation. Pure tool time (no user pauses, no bug fixes) ~1017s."
+  }
+}
