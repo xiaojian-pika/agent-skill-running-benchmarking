@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "date": "2026-04-15",
+    "round": 1,
+    "tester": "Claude Code (claude-sonnet-4-6, self-benchmarking)",
+    "notes": "MCA benchmark for short-film skill. Session sesn_011Ca5ER8bNLzhcLU24rcWWi, agent agent_011Ca5DzAVnAckNg438cPSR1, env env_01C7HCQETarSF2XMLwzx2PGZ (reused from music-video). Branch feat/short-film (d05693e). Skill mounted via GitHub resource at /workspace/nova3-agent-skills. Two interactive confirmation stages (2.5 script review, 3.5 keyframe review) auto-confirmed via monitor_mca.py polling script. Container experienced 4 crashes during Stage 4 video pipeline — all after music (Stage 3.6) had already completed successfully. Crash recovery: each crash required ~8-10 min container restart. video.py lacks built-in resume from _omni_jobs_state.json (always re-submits batches) — agent manually polled saved Kling job IDs after crashes, downloaded/normalized/concatenated. Kling B2 batch (shots 04-06) took ~37 min vs 5-7 min for other batches (outlier). Gemini flakiness ~30% (503/504 on image gen — pipeline retried missing items). Kling CDN 503s on download — exponential backoff resolved. WALL_START based on first user message to agent (08:25:22Z). Session created 08:21:25Z (237s before first user message = session boot time not included in WALL).",
+    "test_input": {
+      "name": "The Hargrove Library (horror short film)",
+      "description": "Benchmark prompt from testing-samples/benchmark-prompt-short-film.md. 12 shots · 60s target · Portrait 9:16 · sfx_hint path (no TTS lipsync) · Gothic horror atmosphere, cold noir B&W + amber accents. Protagonist Ji-yeon, abandoned university library setting.",
+      "resolution": null,
+      "duration_s": 60,
+      "codec": null,
+      "size_kb": null,
+      "url": null
+    }
+  },
+  "task": {
+    "name": "short-film",
+    "version": "feat/short-film (d05693e)",
+    "purpose": "Full e2e short film generation on Managed Claude Agent. Text prompt → 7-question brief → story plan → Gemini character/scene reference images → per-shot Gemini keyframes → MiniMax background music (parallel) → Kling v3 omni multi-shot video (5 batches, parallel) → lipsync/audio mix → CDN delivery.",
+    "expected_output": "A ~60s 1080×1920 9:16 portrait mp4 with background music and Kling-native SFX/voices, delivered via CDN"
+  },
+  "platform": {
+    "name": "managed-claude-agent",
+    "runtime": "Anthropic managed container (cloud)",
+    "llm_model": "Claude Opus 4.6",
+    "system_prompt_tokens": null
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Not applicable. Skill pre-installed via GitHub resource mount (feat/short-film branch, d05693e) at session creation. Environment packages (ffmpeg, PIL, requests, etc.) pre-installed in env_01C7HCQETarSF2XMLwzx2PGZ. PYTHONPATH set manually by agent each turn (export PYTHONPATH=\"${PIKABOT_SKILLS_DIR}:${PYTHONPATH}\")."
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": null,
+      "total_s": 100,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "Stages 0+1+2: init (119ms) + plan (107ms) + Gemini reference image generation (~82s with retry). Stage 2 first pass: 32s (3 of 5 assets hit Gemini 503). Retry: 25s (all 5 assets done). No external file download — all generative. ~100s total including env setup overhead. Interactive pause at Stage 2.5 (user confirmation ~3m 40s) not included in this total."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1037,
+      "steps": [
+        {
+          "name": "keyframes",
+          "duration_s": 324,
+          "notes": "Stage 3: 12 shots individually via Gemini, 9:16 portrait, 3 reference images. First pass 295s (tmux timeout — shots 05+12 failed: Gemini 504). Retry 29s (both regenerated). PIL grid recomposed manually (9-shot grid_batch01.png + 3-shot grid_batch02.png, 1080×1920)."
+        },
+        {
+          "name": "music_gen",
+          "duration_s": 46.8,
+          "notes": "Stage 3.6: MiniMax Music ~60s score. Prompt: 'Dark horror suspense underscore, low droning strings, dissonant piano notes'. Output: background_music.mp3 (26.0s, 815KB). Ran in parallel with Stage 4 video; no net wall-time cost."
+        },
+        {
+          "name": "video_gen_kling",
+          "duration_s": 665,
+          "notes": "Stage 4: Kling v3 omni multi-shot, 5 batches (B1=shots 1-3 [3×5s], B2=shots 4-6 [3×5s], B3=shots 7-9 [3×5s], B4=shots 10-11 [2×5s], B5=shot 12 [1×5s]). Jobs submitted at 08:49:47Z. Kling render: B1/B3/B4/B5 done in ~5-7 min; B2 took ~37 min (outlier). video.py lacks built-in resume — agent manually polled _omni_jobs_state.json job IDs. Download+normalize+concat ~30s with CDN 503 retries. video.py was called 3× (2 full re-submits after crashes). skill_run_s for this step = 295 (first poll) + 295 (second re-submit) + 60 (diagnosis) + 15 (B2 final poll) + 35 (DL+normalize+concat) = ~665s compute, excluding crash recovery."
+        },
+        {
+          "name": "lipsync_audio_mix",
+          "duration_s": 0.5,
+          "notes": "Stage 4.5: sfx_hint path (no TTS/fal) → music overlay at 0.06 volume. Completed in 523ms (already done from earlier crashed session turn). No dialogue shots → music-only path."
+        }
+      ],
+      "llm_overhead_s": null,
+      "total_s": 3454,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "total_s is wall time from Stage 3 start (~08:31:11Z) to final.mp4 confirmed (09:28:45Z) = 57m 34s = 3454s. skill_run_s (~1037s) is estimated pure compute time (no crash recovery, no user waits, no container restart waiting). Container crash recovery dominated the gap: 4 crashes × ~10 min recovery = ~2400s additional wall time. Kling B2 outlier added ~32 min vs expected 5 min."
+    },
+    "delivery": {
+      "upload_s": 5,
+      "output_size_kb": 42560,
+      "output_url": "https://cdn.pika.art/v2/files/agent/eb064606-0e26-4d56-97ae-3c543c14ce41/final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 5,
+      "tokens": {"input_tokens": null, "output_tokens": null},
+      "notes": "CDN upload via pika.art proxy (presigned PUT). final.mp4: 43,582,483 bytes (43.6 MB, 42,560 KB), 60.26s, 1080×1920, H.264+AAC. final_video_only.mp4 (pre-audio-mix): 43,082,918 bytes (43.1 MB). CDN upload included within video.py and lipsync.py execution."
+    }
+  },
+  "tokens": {
+    "input_tokens": 892,
+    "output_tokens": 30976,
+    "cache_read_tokens": 1948742,
+    "cache_write_tokens": 202966,
+    "total_tokens": 2183576,
+    "notes": "From GET /v1/sessions/sesn_011Ca5ER8bNLzhcLU24rcWWi usage field (final idle state). cache_write = ephemeral_5m_input_tokens (system prompt cached per turn, 5-min TTL). cache_read large due to long conversation (300 events) being re-read each turn. effective_input_tokens = 892 + 1948742 + 202966 = 2152600. High cache_write vs music-video runs (202966 vs 42660) reflects more turns and longer context due to container crash recovery loops."
+  },
+  "cost": {
+    "model": "Claude Opus 4.6",
+    "input_price_per_million": 15.0,
+    "output_price_per_million": 75.0,
+    "cache_read_price_per_million": 1.50,
+    "cache_write_price_per_million": 18.75,
+    "estimated_cost_usd": 9.07
+  },
+  "totals": {
+    "tool_calls_s": 3844,
+    "llm_overhead_s": 480,
+    "wall_total_s": 4324,
+    "llm_pct": 11.1,
+    "skill_pct": 88.9
+  }
+}
