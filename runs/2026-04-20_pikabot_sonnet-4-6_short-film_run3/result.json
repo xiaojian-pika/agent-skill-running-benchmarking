@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "date": "2026-04-20",
+    "round": 3,
+    "tester": "AI Ringo (agent 80ffa15b) — sessions_spawn subagent",
+    "notes": "TC-03: cherry-blossom-farewell, 8 shots 40s portrait 9:16. Full pipeline stages 0-4 inline (no sub-subagents). sessions_spawn mode=run cleanup=keep. skill installed to /app/skills/short-film/ before run. Not cold run.",
+    "cold_run": false,
+    "git_commit": "63c7b9d",
+    "system_load": {
+      "uptime": "EKS pod",
+      "memory_free_mb": 34751,
+      "disk_free_mb": 115045
+    },
+    "contamination": {
+      "retries": 0,
+      "timeouts": 0,
+      "fallbacks": 0
+    },
+    "test_input": {
+      "name": "text prompt: cherry-blossom-farewell",
+      "description": "Young woman saying goodbye to childhood home in spring, cherry blossoms falling, 9:16 portrait, soft cinematic style",
+      "resolution": "9:16 portrait",
+      "duration_s": null,
+      "codec": "",
+      "size_kb": null,
+      "url": ""
+    }
+  },
+  "task": {
+    "name": "short-film",
+    "version": "63c7b9d",
+    "purpose": "Full pipeline: init → plan → assets → keyframes → Kling video (portrait 9:16)",
+    "expected_output": "CDN video URL, 8 shots, 40s, 9:16 portrait, soft cinematic"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod (nova3) — sessions_spawn subagent",
+    "llm_model": "claude-sonnet-4-6",
+    "system_prompt_tokens": 24646
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": 5.0,
+      "llm_overhead_s": 4.461,
+      "total_s": 9.461,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 99
+      },
+      "notes": "LLM call #1: 4.46s — read SKILL.md, subagent spawn overhead ~5s"
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": 24.290,
+      "total_s": 24.290,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 520
+      },
+      "notes": "LLM calls #2-4: parse text prompt, confirm brief, no download (text-only input)"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 638.959,
+      "steps": [
+        {
+          "name": "Stage 0 init.py",
+          "duration_s": 6.0,
+          "notes": "project dir film_20260420_f806b6 created, project.json written"
+        },
+        {
+          "name": "Stage 1 plan write_plan()",
+          "duration_s": 52.0,
+          "notes": "LLM call #5 (46.3s dominant): 8-shot storyboard, 4 scenes, character Yuki"
+        },
+        {
+          "name": "Stage 2 assets.py (Gemini Pro)",
+          "duration_s": 185.0,
+          "notes": "5 images: 1 character portrait + 4 scene refs, Gemini gemini-3-pro-image-preview"
+        },
+        {
+          "name": "Stage 3 keyframes.py (Gemini Per-Shot)",
+          "duration_s": 248.0,
+          "notes": "8 individual keyframe calls + 3x3 grid compose via PIL"
+        },
+        {
+          "name": "Stage 4 video.py (Kling v3 Pro i2v)",
+          "duration_s": 148.0,
+          "notes": "3 batches (15s+15s+10s), ffmpeg concat, 33MB CDN upload"
+        }
+      ],
+      "llm_overhead_s": 118.556,
+      "total_s": 740.764,
+      "tokens": {
+        "input_tokens": 14,
+        "output_tokens": 4841
+      },
+      "notes": "All stages inline in single session (no sub-subagents). tool_calls_s=638.959s (API: Gemini+Kling). LLM calls #5-19."
+    },
+    "delivery": {
+      "upload_s": 5.0,
+      "output_size_kb": 33792,
+      "output_url": "https://cdn.pika.art/v2/files/agent/78f48cb8-2368-435a-884e-2ca3d0139f1c/final_video_only.mp4",
+      "llm_overhead_s": 12.227,
+      "total_s": 17.227,
+      "tokens": {
+        "input_tokens": 1,
+        "output_tokens": 497
+      },
+      "notes": "LLM call #20 (12.2s): final report. CDN URL confirmed."
+    }
+  },
+  "tokens": {
+    "input_tokens": 22,
+    "output_tokens": 5546,
+    "cache_read_tokens": 502597,
+    "cache_write_tokens": 174015,
+    "reasoning_output_tokens": null,
+    "total_tokens": 682180
+  },
+  "llm_calls": {
+    "count": 20,
+    "mean_duration_s": 7.626,
+    "p95_duration_s": 12.227,
+    "calls": [
+      {"index": 1, "timestamp": "2026-04-20T06:20:17.108Z", "duration_s": 4.461, "input_tokens": 3, "output_tokens": 99, "cache_read_tokens": 0, "cache_write_tokens": 24646},
+      {"index": 2, "timestamp": "2026-04-20T06:20:27.776Z", "duration_s": 10.654, "input_tokens": 1, "output_tokens": 312, "cache_read_tokens": 24646, "cache_write_tokens": 3500},
+      {"index": 3, "timestamp": "2026-04-20T06:20:35.301Z", "duration_s": 7.495, "input_tokens": 1, "output_tokens": 208, "cache_read_tokens": 0, "cache_write_tokens": 28501},
+      {"index": 4, "timestamp": "2026-04-20T06:20:41.488Z", "duration_s": 6.141, "input_tokens": 1, "output_tokens": 139, "cache_read_tokens": 0, "cache_write_tokens": 28815},
+      {"index": 5, "timestamp": "2026-04-20T06:21:27.810Z", "duration_s": 46.308, "input_tokens": 1, "output_tokens": 2719, "cache_read_tokens": 28815, "cache_write_tokens": 1441},
+      {"index": 6, "timestamp": "2026-04-20T06:21:30.982Z", "duration_s": 3.151, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 30256, "cache_write_tokens": 2747},
+      {"index": 7, "timestamp": "2026-04-20T06:21:38.329Z", "duration_s": 7.310, "input_tokens": 1, "output_tokens": 179, "cache_read_tokens": 33003, "cache_write_tokens": 112},
+      {"index": 8, "timestamp": "2026-04-20T06:22:09.260Z", "duration_s": 5.857, "input_tokens": 1, "output_tokens": 140, "cache_read_tokens": 33115, "cache_write_tokens": 452},
+      {"index": 9, "timestamp": "2026-04-20T06:24:13.417Z", "duration_s": 4.119, "input_tokens": 1, "output_tokens": 89, "cache_read_tokens": 28146, "cache_write_tokens": 5608},
+      {"index": 10, "timestamp": "2026-04-20T06:24:54.401Z", "duration_s": 4.670, "input_tokens": 1, "output_tokens": 140, "cache_read_tokens": 33754, "cache_write_tokens": 349},
+      {"index": 11, "timestamp": "2026-04-20T06:25:58.008Z", "duration_s": 3.576, "input_tokens": 1, "output_tokens": 91, "cache_read_tokens": 0, "cache_write_tokens": 34292},
+      {"index": 12, "timestamp": "2026-04-20T06:28:01.843Z", "duration_s": 3.826, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 34292, "cache_write_tokens": 111},
+      {"index": 13, "timestamp": "2026-04-20T06:28:05.477Z", "duration_s": 3.617, "input_tokens": 1, "output_tokens": 91, "cache_read_tokens": 34103, "cache_write_tokens": 388},
+      {"index": 14, "timestamp": "2026-04-20T06:30:09.677Z", "duration_s": 4.188, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 34491, "cache_write_tokens": 111},
+      {"index": 15, "timestamp": "2026-04-20T06:30:14.404Z", "duration_s": 4.709, "input_tokens": 1, "output_tokens": 134, "cache_read_tokens": 0, "cache_write_tokens": 34690},
+      {"index": 16, "timestamp": "2026-04-20T06:32:19.026Z", "duration_s": 4.499, "input_tokens": 1, "output_tokens": 90, "cache_read_tokens": 34690, "cache_write_tokens": 154},
+      {"index": 17, "timestamp": "2026-04-20T06:32:25.426Z", "duration_s": 6.278, "input_tokens": 1, "output_tokens": 138, "cache_read_tokens": 34844, "cache_write_tokens": 105},
+      {"index": 18, "timestamp": "2026-04-20T06:32:30.398Z", "duration_s": 4.855, "input_tokens": 1, "output_tokens": 138, "cache_read_tokens": 34949, "cache_write_tokens": 5830},
+      {"index": 19, "timestamp": "2026-04-20T06:33:11.873Z", "duration_s": 4.584, "input_tokens": 1, "output_tokens": 123, "cache_read_tokens": 40779, "cache_write_tokens": 1935},
+      {"index": 20, "timestamp": "2026-04-20T06:33:24.131Z", "duration_s": 12.227, "input_tokens": 1, "output_tokens": 497, "cache_read_tokens": 42714, "cache_write_tokens": 228}
+    ]
+  },
+  "cost": {
+    "model": "claude-sonnet-4-6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.8866
+  },
+  "totals": {
+    "tool_calls_s": 638.959,
+    "llm_overhead_s": 152.556,
+    "wall_total_s": 791.515,
+    "llm_pct": 19.3,
+    "skill_pct": 80.7
+  }
+}
