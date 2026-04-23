@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "date": "2026-04-23",
+    "round": 2,
+    "tester": "claudecode",
+    "notes": "INFRASTRUCTURE ISSUES: MiniMax proxy (7i30hpv4bo9ud5mhianq.pika.art) down for BGM — attempt 1 returned 10.3s clip (too short, rejected), attempts 2+3 failed with RemoteDisconnected/ProxyError (~200s wasted total). BGM reused from prior run (65.5s track). LLM phase short (~17s) because concept+script+prompts written inline without separate tool calls — a fully cold session with step-by-step LLM calls would add ~180-300s. SeeDance ran cleanly on first attempt (no timeouts, both acts succeeded). Wall start: 2026-04-23T06:38:02Z, Wall end: 2026-04-23T06:48:30Z.",
+    "test_input": {
+      "name": "freitag-sky-blue-backpack-brief",
+      "description": "Freitag sky-blue tarp cube backpack TVC from brand brief. Concept: 'The City Gave It Back'. 2 local images (bag.webp + logo.png), no character ref image. Run2 — fresh SeeDance generations, same brief as run1.",
+      "resolution": "1280x720",
+      "duration_s": 30.08,
+      "codec": "H.264+AAC",
+      "size_kb": 10806,
+      "url": "/tmp/ad-bench-run2/final.mp4"
+    }
+  },
+
+  "task": {
+    "name": "short-ads",
+    "version": "2.0.0",
+    "purpose": "Generate 30s brand TVC for FREITAG from brand brief: 2×15s SeeDance acts, MiniMax BGM, ElevenLabs VO, ffmpeg encode",
+    "expected_output": "Landscape 16:9 MP4 (30s) with SeeDance-generated video (2 acts), ambient electronic BGM, deep English VO slogan, crop+eq colour grade"
+  },
+
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/nova3-agent-skills/short-ads/"
+    },
+    "asset_acquisition": {
+      "download_s": 0,
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Assets local on Desktop (Logo_Freitag.png, 000003899622_1-20240923161710.webp). No download needed."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 306,
+      "steps": [
+        {
+          "name": "llm_concept_script_prompts",
+          "duration_s": 17,
+          "notes": "LLM phase: concept, brand tone profile, 8-shot visual script, 2x Seedance prompt pairs (EN). Written inline in same session — no separate tool calls. A fresh cold session with step-by-step LLM calls estimated at 180-300s."
+        },
+        {
+          "name": "seedance_act1",
+          "duration_s": 267,
+          "notes": "SeeDance 2.0 r2v Act 1. 1 image ref (bag). 28 IN_PROGRESS polls before COMPLETED. seed=1729442179. Output: 4.3MB. No timeout — clean run."
+        },
+        {
+          "name": "seedance_act2",
+          "duration_s": 190,
+          "notes": "SeeDance 2.0 r2v Act 2. 2 image refs (bag + logo). 19 IN_PROGRESS polls before COMPLETED. seed=41007897. Output: 4.1MB. No timeout — clean run."
+        },
+        {
+          "name": "seedance_wall",
+          "duration_s": 267,
+          "notes": "Acts ran in parallel. Wall time = max(act1=267s, act2=190s). Measured: 266,605ms."
+        },
+        {
+          "name": "ffmpeg_concat",
+          "duration_s": 7,
+          "notes": "ffmpeg -f concat joining act1+act2 into 30.08s video_noaudio.mp4. Measured: 6,670ms."
+        },
+        {
+          "name": "bgm_minimax",
+          "duration_s": 0,
+          "notes": "REUSED from prior run (65.5s track). MiniMax proxy failed all 3 attempts: attempt 1 returned 10.3s clip (rejected as too short), attempts 2+3 RemoteDisconnected/ProxyError. 200s wasted. Typical clean-run duration: 30-60s."
+        },
+        {
+          "name": "vo_elevenlabs",
+          "duration_s": 3,
+          "notes": "ElevenLabs eleven_v3, Brian voice (nPczCjzI2devNBz1zQrb). Text: 'The city gave it back.' Measured: 2,630ms. Output: 26KB."
+        },
+        {
+          "name": "ffmpeg_encode",
+          "duration_s": 12,
+          "notes": "Final encode: crop=1200:675:40:22, scale=1280:720, eq brightness+contrast, BGM 0.45vol, VO 3.0vol at 27283ms. crf=16 preset=slow. Measured: 12,179ms. Output: 11MB."
+        }
+      ],
+      "llm_overhead_s": 122,
+      "total_s": 628,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = wall_total (628s). skill_run_s = successful step durations (17+267+7+0+3+12=306). BGM failures (~200s) treated as tool_calls overhead in totals. llm_overhead_s = 628-506=122s (506 = 306 successful + 200 BGM failures)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 10806,
+      "output_url": "/tmp/ad-bench-run2/final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only. No CDN upload."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 16,
+    "output_tokens": 12328,
+    "cache_read_tokens": 1705707,
+    "cache_write_tokens": 20957,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "total_tokens": 1739008,
+    "_note": "Extracted via extract-cc-tokens.py --after 2026-04-23T06:38:02Z --before 2026-04-23T06:48:30Z. 16 messages matched, 820 filtered out. effective_input_tokens=1726680. Lower than run1 because this is a separate session window mid-session."
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.78
+  },
+
+  "totals": {
+    "tool_calls_s": 506,
+    "llm_overhead_s": 122,
+    "wall_total_s": 628,
+    "llm_pct": 19.4,
+    "skill_pct": 80.6,
+    "_note": "tool_calls_s = successful steps (306) + BGM failed attempts (200) = 506. llm_overhead_s = 628-506=122. SeeDance ran cleanly this run (no fal.ai timeouts). BGM proxy still down — same infrastructure failure as run1. Estimated clean-infrastructure wall (fresh BGM, inline LLM): ~420s. True cold-start LLM would add ~180-300s → clean cold wall ~560-600s."
+  }
+}

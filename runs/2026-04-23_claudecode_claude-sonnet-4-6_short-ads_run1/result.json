@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "date": "2026-04-23",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "INFRASTRUCTURE ISSUES: (1) fal.ai SeeDance read timeout (30s) on first submission attempt for both acts — jobs submitted successfully but polling connection timed out after ~355s. Both retried successfully. (2) MiniMax proxy (7i30hpv4bo9ud5mhianq.pika.art) down for BGM — 3 attempts all failed with RemoteDisconnected/SSLEOFError, 228s wasted. BGM reused from prior TVC run. LLM phase was short (~25s) because prompts were reused from same-session TVC#2; a fresh run from scratch would add ~180-300s for concept+tone+script+Seedance prompt generation. Wall total inflated by ~583s of failed retries. Estimated clean-infrastructure wall: ~390s.",
+    "test_input": {
+      "name": "freitag-sky-blue-backpack-brief",
+      "description": "Freitag sky-blue tarp cube backpack TVC from brand brief. Concept: 'The City Gave It Back'. 2 local images (bag.webp + logo.png), no character ref image.",
+      "resolution": "1280x720",
+      "duration_s": 30.08,
+      "codec": "H.264+AAC",
+      "size_kb": 11264,
+      "url": "/tmp/ad-bench/final.mp4"
+    }
+  },
+
+  "task": {
+    "name": "short-ads",
+    "version": "2.0.0",
+    "purpose": "Generate 30s brand TVC for FREITAG from brand brief: 2×15s SeeDance acts, MiniMax BGM, ElevenLabs VO, ffmpeg encode",
+    "expected_output": "Landscape 16:9 MP4 (30s) with SeeDance-generated video (2 acts), ambient electronic BGM, deep English VO slogan, crop+eq colour grade"
+  },
+
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/nova3-agent-skills/short-ads/"
+    },
+    "asset_acquisition": {
+      "download_s": 0,
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Assets local on Desktop (Logo_Freitag.png, bag.webp). No download needed."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 301,
+      "steps": [
+        {
+          "name": "llm_concept_script_prompts",
+          "duration_s": 25,
+          "notes": "LLM phase: concept, brand tone profile, 10-shot visual script, 2x Seedance prompt pairs (EN). Short because prompts reused from same-session TVC#2 run. Fresh run from scratch estimated 180-300s."
+        },
+        {
+          "name": "seedance_act1",
+          "duration_s": 213,
+          "notes": "SeeDance 2.0 r2v Act 1 (retry). Start: 05:07:51Z, end: 05:11:24Z. 1 image ref (bag). First attempt timed out after ~355s (fal.ai 30s read timeout). seed=2122624967. Output: 4.0MB."
+        },
+        {
+          "name": "seedance_act2",
+          "duration_s": 249,
+          "notes": "SeeDance 2.0 r2v Act 2 (retry). Start: 05:07:51Z, end: 05:12:00Z. 2 image refs (bag + logo). First attempt timed out. seed=896947552. Output: 4.9MB."
+        },
+        {
+          "name": "seedance_wall",
+          "duration_s": 249,
+          "notes": "Acts ran in parallel. Wall time = max(act1=213s, act2=249s). Not sum."
+        },
+        {
+          "name": "ffmpeg_concat",
+          "duration_s": 8,
+          "notes": "ffmpeg -f concat joining act1+act2 into 30.08s video_noaudio.mp4. Measured: 8265ms."
+        },
+        {
+          "name": "bgm_minimax",
+          "duration_s": 0,
+          "notes": "REUSED from prior run (65.5s track). MiniMax proxy failed all 3 attempts (228s wasted, RemoteDisconnected + SSLEOFError). Typical clean-run duration: 60-120s."
+        },
+        {
+          "name": "vo_elevenlabs",
+          "duration_s": 3,
+          "notes": "ElevenLabs eleven_v3, Brian voice (nPczCjzI2devNBz1zQrb). Text: 'The city gave it back.' Measured: 2778ms. Output: 1.2s / 24.9KB."
+        },
+        {
+          "name": "ffmpeg_encode",
+          "duration_s": 16,
+          "notes": "Final encode: crop=1200:675:40:22, scale=1280:720, eq brightness+contrast, BGM 0.45vol, VO 3.0vol at 27683ms. crf=16 preset=slow. Measured: 16029ms. Output: 11MB."
+        }
+      ],
+      "llm_overhead_s": 395,
+      "total_s": 671,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = wall_total (671s). skill_run_s = sum of successful step durations (25+249+8+0+3+16=301). llm_overhead_s = wall_total - skill_run_s = 671-301 = 370, but ~355s of that is failed first-attempt polling overhead, not LLM thinking. True LLM overhead ~25s this run. Failed attempts: 2x fal.ai read timeout (~355s each submitted in parallel), 3x MiniMax proxy fail (228s, overlapped)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 11264,
+      "output_url": "/tmp/ad-bench/final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "Local delivery only. No CDN upload."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 46,
+    "output_tokens": 14303,
+    "cache_read_tokens": 5347767,
+    "cache_write_tokens": 23563,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "total_tokens": 5385679,
+    "_note": "Extracted via extract-cc-tokens.py --after 2026-04-23T05:01:31Z --before 2026-04-23T05:12:42Z. 34 messages matched, 686 filtered out. effective_input_tokens=5371376. High cache_read due to large SKILL.md being re-read and long session context."
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 1.91
+  },
+
+  "totals": {
+    "tool_calls_s": 301,
+    "llm_overhead_s": 370,
+    "wall_total_s": 671,
+    "llm_pct": 55.1,
+    "skill_pct": 44.9,
+    "_note": "llm_pct inflated by fal.ai retry overhead (~355s polling failures misclassified as LLM overhead). True LLM thinking ~25s this run (prompts reused). Estimated clean-infrastructure breakdown: tool_calls ~330s, llm ~60s, wall ~390s → llm_pct ~15%, skill_pct ~85%."
+  }
+}

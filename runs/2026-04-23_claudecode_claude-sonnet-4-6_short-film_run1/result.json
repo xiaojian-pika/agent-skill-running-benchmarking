@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "date": "2026-04-23",
+    "round": 1,
+    "tester": "claudecode",
+    "notes": "FULL RUN — All stages executed from scratch including fresh Gemini assets/keyframes. Infrastructure issues: (1) MiniMax music-2.5 returned a 9s clip on first music.py call (too short), required reset + retry; best clip obtained was 40.0s (shorter than 56.2s film — last ~16s of film has no BGM). Retry2 (162s) also failed to produce clips ≥50s (all attempts returned 19–40s). Total music stage wall ~228s with retries. (2) MiniMax proxy attempt 1 in retry1 failed with RemoteDisconnected (~15s wasted). No CDN upload failures. Kling ran cleanly — all 4 batches completed on poll #9 (270s). Wall start: 2026-04-23T06:07:33Z, Wall end: 2026-04-23T06:31:01Z.",
+    "test_input": {
+      "name": "creative-brief-horror",
+      "description": "Horror/thriller creative brief: Ji-yeon (22yo Korean exchange student) discovers ghost in abandoned university library. 12 shots, portrait 9:16, cold noir style. Standard benchmark brief.",
+      "resolution": "1080x1920",
+      "duration_s": 56.2,
+      "codec": "H.264+AAC",
+      "size_kb": 42424,
+      "url": "https://cdn.pika.art/v2/files/agent/85f6126c-90a9-4b69-9ff1-0955e0d3a87a/final.mp4"
+    }
+  },
+
+  "task": {
+    "name": "short-film",
+    "version": "33bff42",
+    "purpose": "Generate a complete ~60s horror short film from a 7-question creative brief: plan, Gemini assets, Gemini keyframes, MiniMax music, Kling video (4 batches), music mix + CDN upload",
+    "expected_output": "Portrait 9:16 MP4 (~60s) with Kling-generated video, per-shot SFX audio, background horror score, uploaded to CDN"
+  },
+
+  "platform": {
+    "name": "claudecode",
+    "runtime": "local Mac",
+    "llm_model": "Claude Sonnet 4.6",
+    "system_prompt_tokens": null
+  },
+
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": null,
+      "llm_overhead_s": null,
+      "total_s": null,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No install step — skill pre-installed at ~/nova3-agent-skills/short-film/"
+    },
+    "asset_acquisition": {
+      "download_s": 0,
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "No test input to download — input is a text creative brief only."
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 1256,
+      "steps": [
+        {
+          "name": "init",
+          "duration_s": 0,
+          "notes": "Stage 0: project directory + project.json created (film_20260423_6f68fe). Measured: 97ms. Batch mode, portrait 9:16."
+        },
+        {
+          "name": "plan",
+          "duration_s": 200,
+          "notes": "Stage 1: Claude writes story bible (logline, worldview, tone, narrative_arc) + 2 characters + 3 scenes + 12 shots via write_plan(). write_plan() execution: 78ms. Duration is estimated wall time for LLM to construct full plan JSON (~56s total, cold noir, 12-shot horror brief)."
+        },
+        {
+          "name": "assets_gemini",
+          "duration_s": 30,
+          "notes": "Stage 2: Gemini flash generated 2 character portraits (Ji-yeon, The Ghost) + 3 scene reference images (Library Exterior, Reading Room, Deep Stacks) in parallel. All 5 images succeeded. Measured: 30,273ms."
+        },
+        {
+          "name": "keyframes_gemini",
+          "duration_s": 222,
+          "notes": "Stage 3: 12 individual Gemini calls for per-shot keyframes (9:16 portrait), sequential. All 12 succeeded. Grid reviews generated: grid_batch01.png (9 shots), grid_batch02.png (3 shots). Measured: 222,160ms."
+        },
+        {
+          "name": "music_minimax",
+          "duration_s": 228,
+          "notes": "Stage 3.5: MiniMax music-2.5. Three attempts total. Attempt 1 (music.py): 30.5s → returned 9.0s clip (too short, pipeline_status reset). Attempt 2 (direct API, proxy fail on call 1, success call 2): ~35s → 40.0s clip saved. Attempt 3 (retry2): 162s → all clips 19–27s, too short, nothing saved. Final: 40.0s, 1254KB. Film is 56.2s — last ~16s has no BGM. Total wall: ~228s."
+        },
+        {
+          "name": "video_kling",
+          "duration_s": 509,
+          "notes": "Stage 4: Kling v3 omni multi-shot. 12 shots → 4 batches (3 shots × 14s each). CDN upload of 12 keyframes → 4 concurrent batch submissions → poll every 30s. All 4 batches completed on poll #9 (270s render wall). Download + normalize + ffmpeg concat → final_video_only.mp4 (56.2s, 41MB). CDN: https://cdn.pika.art/v2/files/agent/d79fa23c-b283-486b-ad46-77a3e729fc57/final_video_only.mp4. Measured: 508,941ms.",
+          "substeps": [
+            {
+              "name": "kling_keyframe_cdn_upload",
+              "duration_s": 30,
+              "notes": "Upload 12 keyframe JPGs to CDN (parallel). Estimated from overall video timing."
+            },
+            {
+              "name": "kling_submit",
+              "duration_s": 20,
+              "notes": "4 concurrent batch submissions to Kling v3 omni API. Estimated."
+            },
+            {
+              "name": "kling_poll_all_batches",
+              "duration_s": 270,
+              "notes": "Polling loop every 30s — all 4 batches pending through polls #1–8, all COMPLETED at poll #9. Total: 9 × 30s = 270s."
+            },
+            {
+              "name": "kling_download_assemble",
+              "duration_s": 189,
+              "notes": "Download 4 batch MP4s (total ~92MB: 34MB+17MB+16MB+25MB), normalize PTS (4 files), ffmpeg concat → final_video_only.mp4. Estimated: 509 - 30 - 20 - 270 = 189s."
+            }
+          ]
+        },
+        {
+          "name": "lipsync_mix",
+          "duration_s": 67,
+          "notes": "Stage 4.5: No dialogue shots (sfx_hint used for all speech — Kling handles voice natively). Music mix only: ffmpeg mixes background_music.mp3 (40s) into final_video_only.mp4 (56.2s). BGM plays for first 40s then silent. CDN upload of final.mp4 (42.4MB). CDN URL: https://cdn.pika.art/v2/files/agent/85f6126c-90a9-4b69-9ff1-0955e0d3a87a/final.mp4. Measured: 66,880ms."
+        }
+      ],
+      "llm_overhead_s": 152,
+      "total_s": 1408,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "execution.total_s = wall_total (1408s). skill_run_s = sum of step durations (0+200+30+222+228+509+67=1256). llm_overhead_s = 1408-1256 = 152s (inter-stage coordination, not counting Stage 1 plan writing which is included in plan step)."
+    },
+    "delivery": {
+      "upload_s": 0,
+      "output_size_kb": 42424,
+      "output_url": "https://cdn.pika.art/v2/files/agent/85f6126c-90a9-4b69-9ff1-0955e0d3a87a/final.mp4",
+      "llm_overhead_s": null,
+      "total_s": 0,
+      "tokens": {
+        "input_tokens": null,
+        "output_tokens": null
+      },
+      "notes": "CDN upload embedded in lipsync.py (Stage 4.5). Counted in execution.total_s, not here. output_url confirmed live."
+    }
+  },
+
+  "tokens": {
+    "input_tokens": 39,
+    "output_tokens": 38230,
+    "cache_read_tokens": 2618954,
+    "cache_write_tokens": 271686,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "total_tokens": 2928909,
+    "_note": "Extracted via extract-cc-tokens.py --after 2026-04-23T06:07:33Z --before 2026-04-23T06:31:01Z. 39 messages matched, 766 filtered out. effective_input_tokens=2890679. Higher output tokens vs run1 (38,230 vs 25,553) because Stage 1 plan was written fresh with 12 detailed shots."
+  },
+
+  "cost": {
+    "model": "Claude Sonnet 4.6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.30,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 2.38
+  },
+
+  "totals": {
+    "tool_calls_s": 1056,
+    "llm_overhead_s": 352,
+    "wall_total_s": 1408,
+    "llm_pct": 25.0,
+    "skill_pct": 75.0,
+    "_note": "tool_calls_s = steps excluding plan LLM (init+assets+keyframes+music+video+lipsync = 0+30+222+228+509+67=1056). llm_overhead_s = plan(~200s) + inter-stage(152s) = 352s. llm_pct inflated by music retries (~162s of unnecessary retry2 polling). Estimated clean-infrastructure breakdown (single-shot music, no retries): tool_calls ~900s, llm ~200s, wall ~1100s → llm_pct ~18%, skill_pct ~82%."
+  }
+}
