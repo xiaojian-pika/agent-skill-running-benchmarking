@@ -18,15 +18,13 @@ Use this creative brief as the test input. It's designed to exercise all pipelin
 4. Setting: East Coast US university campus, abandoned library, present day
 5. Style: Cold noir, high contrast black and white with occasional amber highlights
 6. Plot: Ji-yeon sneaks into the abandoned library at night to photograph it. She hears breathing behind a shelf, turns to find a pale girl in a white dress. The ghost says "You are not the first person to come to me."
-7. Music: Horror/suspense underscore — SFX-driven, lower volume than voices, NOT soothing piano
 ```
 
 This brief exercises:
 - Character with visual traits → Gemini portrait generation
-- Location + atmosphere → Gemini scene image generation  
-- 12-shot ~60s plan → 5 Kling multi-shot batches
+- Location + atmosphere → Gemini scene image generation
+- 12-shot ~60s plan → 4–5 Kling multi-shot batches
 - Dialogue line → MiniMax TTS + fal lipsync (or sfx_hint fallback)
-- Horror/suspense style → MiniMax music generation
 
 ---
 
@@ -60,9 +58,8 @@ Generate a ~60s short horror film using this creative brief:
    - Stage 1 (plan): Main agent writes story plan JSON directly using write_plan() function
    - Stage 2 (assets): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/assets.py --project-dir /tmp/short-film-bench/film_*`
    - Stage 3 (keyframes): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/keyframes.py --project-dir /tmp/short-film-bench/film_*`
-   - Stage 3.5 (music): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/music.py --project-dir /tmp/short-film-bench/film_*`
    - Stage 4 (video): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/video.py --project-dir /tmp/short-film-bench/film_*`
-   - Stage 4.5 (lipsync+mix): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/lipsync.py --project-dir /tmp/short-film-bench/film_*`
+   - Stage 4.5 (lipsync+CDN): `python3 $PIKABOT_SKILLS_DIR/short-film/scripts/lipsync.py --project-dir /tmp/short-film-bench/film_*`
 4. Upload final output to CDN using `pika-upload-file`. Time it.
 5. Record wall end: `WALL_END=$(date +%s%N); echo "WALL_TOTAL: $(( (WALL_END - WALL_START) / 1000000 ))ms"`
 
@@ -88,7 +85,7 @@ Key fields:
 - meta: date, tester="pikabot", test_input.description="horror short film from 7-question brief"
 - task: name="short-film", version from CMS
 - platform: name="pikabot", runtime="EKS pod", llm_model
-- phases.execution.steps: init, plan, assets_gemini, keyframes_gemini, music_minimax, video_kling, lipsync_mix
+- phases.execution.steps: init, plan, assets_gemini, keyframes_gemini, video_kling, lipsync_cdn
 - delivery: upload_s, output_size_kb, output_url
 - totals: wall_total_s, tool_calls_s, llm_overhead_s, llm_pct, skill_pct
 
@@ -126,7 +123,7 @@ Run the full short-film pipeline with this creative brief:
 
 ## Steps
 
-Record wall_start with `date +%s%N` before step 1, wall_end after step 7.
+Record wall_start with `date +%s%N` before step 1, wall_end after step 6.
 
 1. Stage 0 — init:
    `python3 ~/code/nova3-agent-skills/short-film/scripts/init.py --base-dir /tmp/sf_bench --theme "horror thriller" --orientation portrait --protagonist "Ji-yeon, 22yo Korean student, thin glasses, old camera" --worldview "East Coast US university, abandoned library" --style "cold noir, high contrast"`
@@ -139,13 +136,10 @@ Record wall_start with `date +%s%N` before step 1, wall_end after step 7.
 4. Stage 3 — keyframes:
    `python3 ~/code/nova3-agent-skills/short-film/scripts/keyframes.py --project-dir /tmp/sf_bench/film_*`
 
-5. Stage 3.5 — music:
-   `python3 ~/code/nova3-agent-skills/short-film/scripts/music.py --project-dir /tmp/sf_bench/film_*`
-
-6. Stage 4 — video:
+5. Stage 4 — video:
    `python3 ~/code/nova3-agent-skills/short-film/scripts/video.py --project-dir /tmp/sf_bench/film_*`
 
-7. Stage 4.5 — lipsync+mix:
+6. Stage 4.5 — lipsync+CDN:
    `python3 ~/code/nova3-agent-skills/short-film/scripts/lipsync.py --project-dir /tmp/sf_bench/film_*`
 
 ## Timing rules
@@ -170,7 +164,7 @@ Save result.json to:
 Key fields:
 - meta.test_input.description: "horror short film from 7-question creative brief, portrait 9:16"
 - task.name: "short-film"
-- phases.execution.steps: init, plan, assets_gemini, keyframes_gemini, music_minimax, video_kling (with substeps: kling_submit, kling_poll_all_batches, kling_download_assemble), lipsync_mix (tts, fal_lipsync, music_mix, cdn_upload)
+- phases.execution.steps: init, plan, assets_gemini, keyframes_gemini, video_kling (with substeps: kling_submit, kling_poll_all_batches, kling_download_assemble), lipsync_cdn (tts, fal_lipsync, cdn_upload)
 - delivery.output_url: CDN URL of final.mp4
 
 Also run `python3 ~/code/agent-skill-running-benchmarking/tools/validate-run.py runs/2026-04-15_claudecode_claude-sonnet-4-6_short-film_run1/` and fix any errors.
@@ -209,7 +203,6 @@ echo "WALL_START=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 4. Setting: East Coast US university campus, abandoned library, present day
 5. Style: Cold noir, high contrast black and white with occasional amber highlights
 6. Plot: Ji-yeon sneaks into the abandoned library at night to photograph it. She hears breathing behind a shelf, turns to find a pale girl in a white dress. The ghost says "You are not the first person to come to me." (use sfx_hint for dialogue, not TTS)
-7. Music: Horror/suspense underscore — SFX-driven, lower volume than voices, NOT soothing piano
 
 ## Run the pipeline
 
@@ -250,7 +243,7 @@ echo "stage_3_keyframes: $(( ($(date +%s%N) - T) / 1000000 ))ms"
 
 **Stage 3.5 — keyframe review:** Show keyframe grids to the user and wait for confirmation.
 
-**Stages 3.6 + 4 — music + video (parallel):** Spawn both as subagents simultaneously after Stage 3.5 confirmation.
+**Stage 4 — video:** Spawn as subagent after Stage 3.5 confirmation.
 
 **Stage 4.5 — lipsync+mix:**
 ```bash
@@ -293,13 +286,11 @@ The short-film skill has these distinct API-heavy phases — record each separat
 |------|-----|-----------------|
 | `assets_gemini` | Gemini flash image preview × (chars + scenes) | 60–180s (parallel) |
 | `keyframes_gemini` | Gemini flash image preview × shots | 120–360s (sequential or parallel) |
-| `music_minimax` | MiniMax music-2.5 instrumental | 90–300s |
-| `kling_submit` | Kling v3 omni multi-shot API (5 batches) | 10–30s |
+| `kling_submit` | Kling v3 omni multi-shot API (4–5 batches) | 10–30s |
 | `kling_poll_all_batches` | Kling polling loop (all batches concurrent) | 180–600s |
 | `kling_download_assemble` | Download + ffmpeg concat | 30–120s |
 | `tts_minimax` | MiniMax speech-2.8-hd (per dialogue shot) | 5–30s/shot |
 | `fal_lipsync` | fal-ai/sync-lipsync/v2 (per dialogue shot) | 120–300s/shot |
-| `music_mix` | ffmpeg audio mix | 5–30s |
 | `cdn_upload` | Upload final.mp4 | 10–60s |
 
 **Important:** In abbreviated runs (reusing existing assets/keyframes), `assets_gemini` and `keyframes_gemini` will be near 0. Note this clearly in `meta.notes`.
