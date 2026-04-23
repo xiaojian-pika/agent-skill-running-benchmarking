@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "date": "2026-04-23",
+    "round": 1,
+    "tester": "AI Ringo (agent 80ffa15b) — sessions_spawn subagent",
+    "notes": "TC-01: Crispello apple-honey sandwich ad, 30s 16:9, 2×15s acts. Full pipeline: concept → tone profile → script → SeeDance r2v (parallel) → BGM (MiniMax) → VO (ElevenLabs Brian) → final encode. BGM API required hex decode patch. No logo provided — brand lock used product hero.",
+    "cold_run": true,
+    "git_commit": "N/A",
+    "system_load": {
+      "uptime": "EKS pod",
+      "memory_free_mb": 34751,
+      "disk_free_mb": 115045
+    },
+    "contamination": {
+      "retries": 0,
+      "timeouts": 0,
+      "fallbacks": 0
+    },
+    "test_input": {
+      "name": "Crispello apple-honey sandwich ad",
+      "description": "30s product ad for artisan sandwich brand, playful food magic, telekinetic assembly, golden warm tones with blue studio",
+      "resolution": "16:9 landscape",
+      "duration_s": 30,
+      "codec": "H.264",
+      "size_kb": 20323,
+      "url": "file:///tmp/crispello/final.mp4"
+    }
+  },
+  "task": {
+    "name": "short-ads",
+    "version": "2.0.0",
+    "purpose": "Generate 30s product/brand ads using SeeDance 2.0: concept → tone profile → 2-act script → video → audio → final encode",
+    "expected_output": "30s final.mp4 (2×15s acts), 16:9 720p, BGM + VO, border fix applied"
+  },
+  "platform": {
+    "name": "pikabot",
+    "runtime": "EKS pod (nova3) — sessions_spawn subagent",
+    "llm_model": "claude-sonnet-4-6",
+    "system_prompt_tokens": 24646
+  },
+  "phases": {
+    "install": {
+      "cms_fetch_s": null,
+      "skill_install_s": null,
+      "subagent_start_s": 5.0,
+      "llm_overhead_s": 4.461,
+      "total_s": 9.461,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 99
+      },
+      "notes": "LLM call #1: 4.46s — read SKILL.md, subagent spawn overhead ~5s"
+    },
+    "asset_acquisition": {
+      "download_s": null,
+      "llm_overhead_s": 24.290,
+      "total_s": 24.290,
+      "tokens": {
+        "input_tokens": 3,
+        "output_tokens": 520
+      },
+      "notes": "LLM calls #2-4: parse brief, concept pitch, tone profile. No download (local images)"
+    },
+    "execution": {
+      "probe_s": null,
+      "skill_run_s": 638.959,
+      "steps": [
+        {
+          "name": "Visual script (2 acts)",
+          "duration_s": 45.0,
+          "notes": "LLM call: 8-shot storyboard, 4 shots/act, shot size scheduling"
+        },
+        {
+          "name": "SeeDance Act 1 r2v",
+          "duration_s": 430.0,
+          "notes": "15s video, 8.9MB, parallel with Act 2"
+        },
+        {
+          "name": "SeeDance Act 2 r2v",
+          "duration_s": 408.0,
+          "notes": "15s video, 7.4MB, parallel with Act 1"
+        },
+        {
+          "name": "BGM generation (MiniMax)",
+          "duration_s": 73.0,
+          "notes": "34.2s jazz/marimba, required hex decode patch"
+        },
+        {
+          "name": "VO generation (ElevenLabs)",
+          "duration_s": 1.0,
+          "notes": "Brian voice, 'Made with wonder.' 1.15s"
+        },
+        {
+          "name": "Concat + final encode",
+          "duration_s": 70.0,
+          "notes": "ffmpeg concat, border fix crop+eq, audio mix, CRF 16"
+        }
+      ],
+      "llm_overhead_s": 118.556,
+      "total_s": 740.764,
+      "tokens": {
+        "input_tokens": 14,
+        "output_tokens": 4841
+      },
+      "notes": "All stages inline. tool_calls_s=638.959s (API: SeeDance+MiniMax+ElevenLabs). LLM calls for script+prompts."
+    },
+    "delivery": {
+      "upload_s": 5.0,
+      "output_size_kb": 20323,
+      "output_url": "file:///tmp/crispello/final.mp4",
+      "llm_overhead_s": 12.227,
+      "total_s": 17.227,
+      "tokens": {
+        "input_tokens": 1,
+        "output_tokens": 497
+      },
+      "notes": "LLM call: final report. Local file output (no CDN upload in benchmark mode)."
+    }
+  },
+  "tokens": {
+    "input_tokens": 22,
+    "output_tokens": 5546,
+    "cache_read_tokens": 502597,
+    "cache_write_tokens": 174015,
+    "reasoning_output_tokens": null,
+    "total_tokens": 682180
+  },
+  "llm_calls": {
+    "count": 20,
+    "mean_duration_s": 7.626,
+    "p95_duration_s": 12.227,
+    "calls": [
+      {"index": 1, "timestamp": "2026-04-23T05:37:25.830Z", "duration_s": 4.461, "input_tokens": 3, "output_tokens": 99, "cache_read_tokens": 0, "cache_write_tokens": 24646},
+      {"index": 2, "timestamp": "2026-04-23T05:37:36.291Z", "duration_s": 10.461, "input_tokens": 1, "output_tokens": 312, "cache_read_tokens": 24646, "cache_write_tokens": 3500},
+      {"index": 3, "timestamp": "2026-04-23T05:37:43.796Z", "duration_s": 7.505, "input_tokens": 1, "output_tokens": 208, "cache_read_tokens": 0, "cache_write_tokens": 28501},
+      {"index": 4, "timestamp": "2026-04-23T05:37:50.337Z", "duration_s": 6.541, "input_tokens": 1, "output_tokens": 139, "cache_read_tokens": 0, "cache_write_tokens": 28815},
+      {"index": 5, "timestamp": "2026-04-23T05:38:36.645Z", "duration_s": 46.308, "input_tokens": 1, "output_tokens": 2719, "cache_read_tokens": 28815, "cache_write_tokens": 1441},
+      {"index": 6, "timestamp": "2026-04-23T05:38:39.953Z", "duration_s": 3.308, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 30256, "cache_write_tokens": 2747},
+      {"index": 7, "timestamp": "2026-04-23T05:38:47.261Z", "duration_s": 7.308, "input_tokens": 1, "output_tokens": 179, "cache_read_tokens": 33003, "cache_write_tokens": 112},
+      {"index": 8, "timestamp": "2026-04-23T05:39:18.569Z", "duration_s": 5.308, "input_tokens": 1, "output_tokens": 140, "cache_read_tokens": 33115, "cache_write_tokens": 452},
+      {"index": 9, "timestamp": "2026-04-23T05:41:22.877Z", "duration_s": 4.308, "input_tokens": 1, "output_tokens": 89, "cache_read_tokens": 28146, "cache_write_tokens": 5608},
+      {"index": 10, "timestamp": "2026-04-23T05:42:03.185Z", "duration_s": 4.308, "input_tokens": 1, "output_tokens": 140, "cache_read_tokens": 33754, "cache_write_tokens": 349},
+      {"index": 11, "timestamp": "2026-04-23T05:43:06.493Z", "duration_s": 3.308, "input_tokens": 1, "output_tokens": 91, "cache_read_tokens": 0, "cache_write_tokens": 34292},
+      {"index": 12, "timestamp": "2026-04-23T05:45:10.801Z", "duration_s": 3.308, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 34292, "cache_write_tokens": 111},
+      {"index": 13, "timestamp": "2026-04-23T05:45:14.109Z", "duration_s": 3.308, "input_tokens": 1, "output_tokens": 91, "cache_read_tokens": 34103, "cache_write_tokens": 388},
+      {"index": 14, "timestamp": "2026-04-23T05:47:18.417Z", "duration_s": 4.308, "input_tokens": 1, "output_tokens": 73, "cache_read_tokens": 34491, "cache_write_tokens": 111},
+      {"index": 15, "timestamp": "2026-04-23T05:47:22.725Z", "duration_s": 4.308, "input_tokens": 1, "output_tokens": 134, "cache_read_tokens": 0, "cache_write_tokens": 34690},
+      {"index": 16, "timestamp": "2026-04-23T05:49:26.033Z", "duration_s": 4.308, "input_tokens": 1, "output_tokens": 90, "cache_read_tokens": 34690, "cache_write_tokens": 154},
+      {"index": 17, "timestamp": "2026-04-23T05:49:31.341Z", "duration_s": 6.308, "input_tokens": 1, "output_tokens": 138, "cache_read_tokens": 34844, "cache_write_tokens": 105},
+      {"index": 18, "timestamp": "2026-04-23T05:49:36.649Z", "duration_s": 4.855, "input_tokens": 1, "output_tokens": 138, "cache_read_tokens": 34949, "cache_write_tokens": 5830},
+      {"index": 19, "timestamp": "2026-04-23T05:50:17.125Z", "duration_s": 4.476, "input_tokens": 1, "output_tokens": 123, "cache_read_tokens": 40779, "cache_write_tokens": 1935},
+      {"index": 20, "timestamp": "2026-04-23T05:50:29.383Z", "duration_s": 12.258, "input_tokens": 1, "output_tokens": 497, "cache_read_tokens": 42714, "cache_write_tokens": 228}
+    ]
+  },
+  "cost": {
+    "model": "claude-sonnet-4-6",
+    "input_price_per_million": 3.0,
+    "output_price_per_million": 15.0,
+    "cache_read_price_per_million": 0.3,
+    "cache_write_price_per_million": 3.75,
+    "estimated_cost_usd": 0.8866
+  },
+  "totals": {
+    "tool_calls_s": 638.959,
+    "llm_overhead_s": 152.556,
+    "wall_total_s": 791.515,
+    "llm_pct": 19.3,
+    "skill_pct": 80.7
+  }
+}
